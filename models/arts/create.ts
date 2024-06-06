@@ -11,21 +11,28 @@ import { stripAll } from 'utils'
 const locationCode = "models/arts"
 
 export function createArt(app: MorkatoAPP, pg: Client): ArtDatabase['createArt'] {
+  const logger = app.getLoggerContext(locationCode)
+
   return async ({ name, guild_id, type, description, banner }) => {
     const values: unknown[] = []
-    const query = artInsertBuilder.sql({}, {
+    const payload = {
       name: name,
       key: name === undefined ? undefined : stripAll(name),
       guild_id: guild_id,
       type: type,
       description: description,
       banner: banner
-    }, values)
+    }
+    const query = artInsertBuilder.sql({}, payload, values)
+    logger.debug("SQL QUERY: %s with values: %s", query, values)
 
     async function execute(guildCreated: boolean = false) {
       try {
         const result = await pg.query(query, values)
-        return formatArt(result.rows[0]);
+        const art = formatArt(result.rows[0])
+        logger.debug("RESULT CREATE QUERY: %s with payload: %s", art, payload)
+        app.notify("art.create", art)
+        return art;
       } catch (err) {
         if (err instanceof DatabaseError) {
           if (err.constraint === 'art.guild' && !guildCreated) {

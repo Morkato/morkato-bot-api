@@ -9,6 +9,7 @@ import { formatArt } from './formatters'
 const locationCode = "models/arts"
 
 export function findArt(app: MorkatoAPP, pg: Client): ArtDatabase['findArt'] {
+  const logger = app.getLoggerContext(locationCode)
   return async ({ guild_id }) => {
     const values: unknown[] = []
     const where = {
@@ -16,12 +17,15 @@ export function findArt(app: MorkatoAPP, pg: Client): ArtDatabase['findArt'] {
     }
 
     const query = artsQueryBuilder.sql(where, values)
+    logger.debug("SQL QUERY: %s with values: %s", query, values)
     const {rows} = await pg.query(query, values)
+    logger.debug("RESULT FIND QUERY: %s with values: %s", rows, values)
     return rows.map(formatArt);
   }
 }
 
 export function getArt(app: MorkatoAPP, pg: Client): ArtDatabase['getArt'] {
+  const logger = app.getLoggerContext(locationCode)
   return async ({ guild_id, id }) => {
     const values: unknown[] = []
     const where = {
@@ -30,7 +34,9 @@ export function getArt(app: MorkatoAPP, pg: Client): ArtDatabase['getArt'] {
     }
 
     const query = artQueryBuilder.sql(where, values)
+    logger.debug("SQL QUERY: %s with values: %s", query, values)
     const {rows, rowCount} = await pg.query(query, values)
+    logger.debug("RESULT GET QUERY: %s where %s", rows, where)
 
     if (!rowCount || rowCount === 0) {
       throw new ArtNotFoundError({
@@ -44,6 +50,6 @@ export function getArt(app: MorkatoAPP, pg: Client): ArtDatabase['getArt'] {
       });
     }
 
-    return formatArt(rows[0]);
+    return formatArt(rows[0])
   }
 }

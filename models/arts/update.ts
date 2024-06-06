@@ -11,8 +11,13 @@ import { stripAll } from 'utils'
 const locationCode = "models/arts"
 
 export function updateArt(app: MorkatoAPP, pg: Client): ArtDatabase['updateArt'] {
+  const logger = app.getLoggerContext(locationCode)
   return async ({ guild_id, id, name, type, description, banner }) => {
     const values: unknown[] = []
+    const where = {
+      "art.guild_id": guild_id,
+      "art.id": id
+    }
     const payload = {
       name: name,
       type: type,
@@ -25,11 +30,11 @@ export function updateArt(app: MorkatoAPP, pg: Client): ArtDatabase['updateArt']
       payload.key = stripAll(name)
     }
 
-    const query = artUpdateQueryBuilder.sql({
-      "art.guild_id": guild_id,
-      "art.id": id
-    }, payload, values)
+    const before = await app.database.getArt({ guild_id, id })
+    const query = artUpdateQueryBuilder.sql(where, payload, values)
+    logger.debug("SQL QUERY: %s with values: %s", query, values)
     const {rows, rowCount} = await pg.query(query, values)
+    logger.debug("RESULT UPDATE QUERY: %s with payload: %s where: %s", rows, payload, where)
 
     if (!rowCount || rowCount === 0) {
       throw new ArtNotFoundError({
@@ -42,7 +47,9 @@ export function updateArt(app: MorkatoAPP, pg: Client): ArtDatabase['updateArt']
         errorLocationCode: locationCode
       });
     }
-
-    return formatArt(rows[0]);
+    
+    const after = formatArt(rows[0])
+    app.notify("art.update", before, after)
+    return after;
   };
 }
