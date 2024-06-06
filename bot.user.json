@@ -1,0 +1,14 @@
+{
+  "name": "morkato-bot",
+  "authorization": "secret",
+  "roles": [
+    "MANAGE:GUILDS",
+    "MANAGE:PLAYERS",
+    "MANAGE:PLAYER:ATTACKS",
+    "MANAGE:PLAYER:ITEMS",
+    "MANAGE:PLAYER:ARTS",
+    "MANAGE:ITEMS",
+    "MANAGE:ATTACKS",
+    "MANAGE:ARTS"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "baseUrl": ".",
+    "paths": {
+      "type:*": [
+        "types/*"
+      ],
+      "*": [
+        "./*"
+      ]
+    },
+    "outDir": "./out",
+    "rootDir": "./",
+    "strict": true
+  },
+  "include": [
+    "**/*.ts",
+    "tests/**/*.spec.ts"
+  ],
+  "exclude": [
+    "routes/item",
+    "routes/location",
+    "routes/player",
+    "node_modules",
+    "jest.config.ts",
+    "tests",
+    "spec",
+    "id.ts"
+  ]
+}

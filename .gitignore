@@ -128,3 +128,11 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Spetial files
+
+models/sql-builder.deprecated.ts
+spec
+test.ts
+id.ts
+.ignore/

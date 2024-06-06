@@ -1,0 +1,286 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+
+  url = env("DATABASE_URL")
+}
+
+enum ArtType {
+  RESPIRATION
+  KEKKIJUTSU
+  FIGHTING_STYLE
+}
+
+enum PlayerBreed {
+  HUMAN
+  ONI
+  HYBRID
+}
+
+model Guild {
+  id String @id(map: "guild_pkey")
+
+  arts Art[]
+  attacks Attack[]
+  players Player[]
+  inventory PlayerItem[]
+  playerArts PlayerArt[]
+  playerAttacks PlayerAttack[]
+  items Item[]
+  locations Location[]
+
+  default_player_life Int @default(100)
+  default_player_breath Int @default(500)
+  default_player_blood Int @default(500)
+  default_player_resistance Int @default(0)
+  default_player_force Int @default(0)
+  default_player_velocity Int @default(1)
+
+  @@map("guilds")
+}
+
+model Art {
+  guild Guild @relation(fields: [guild_id], references: [id], onDelete: Cascade, map: "fkey.guild_id")
+  players PlayerArt[]
+  attacks Attack[]
+  key String
+  name String
+  id   String
+  type ArtType
+  description String?
+  banner      String?
+  guild_id String
+  embed_title       String? // Deprecated
+  embed_description String? // Deprecated
+  embed_url         String? // Deprecated
+  created_by String?
+  updated_at DateTime?
+
+  @@id([guild_id, id], map: "art_pkey")
+  @@unique([guild_id, key], map: "art_key")
+  @@map("arts")
+}
+
+model Attack {
+  key String
+
+  name String
+  id   String
+  
+  title String?
+  resume_description String?
+  name_prefix_art String?
+  description String?
+  banner String?
+
+  parent  Attack?  @relation("ParentAttack", fields: [parent_id, guild_id], references: [id, guild_id], map: "fkey.parent_id")
+  guild   Guild    @relation(fields: [guild_id], references: [id], onDelete: Cascade, map: "fkey.guild_id")
+  art     Art?     @relation(fields: [art_id, guild_id], references: [id, guild_id], onDelete: Cascade, map: "fkey.art_id")
+  attacks Attack[] @relation("ParentAttack")
+  players PlayerAttack[]
+
+  guild_id String
+  art_id   String
+  parent_id String?
+
+  damage Int @default(0)
+  breath Int @default(0)
+  blood  Int @default(0)
+
+  // Intents: Inteções do ataque.
+  
+  // 0: Nenhuma
+  // (1 << 2): Indesviável
+  // (1 << 3): Indefensável
+  // (1 << 4): Em área
+  // (1 << 5): Combável
+  // (1 << 6): Não contra atacável
+  // (1 << 7): Contra Ataque
+  // (1 << 8): Dano Somável
+  // (1 << 9): Fôlego Somável
+  // (1 << 10): Sangue Somável
+  // (1 << 11): Usável para defesa
+
+  intents Int @db.Integer @default(0)
+
+  embed_title       String? // deprecated
+  embed_description String? // deprecated
+  embed_url         String? // deprecated
+
+  created_by String?
+  updated_at DateTime?
+
+  @@id([guild_id, id], map: "attack_pkey")
+  @@unique([guild_id, art_id, key], map: "attack_key")
+  @@map("attacks")
+}
+
+model Item {
+  guild   Guild        @relation(fields: [guild_id], references: [id], onDelete: Cascade, map: "fkey.guild_id")
+  players PlayerItem[]
+
+  guild_id String
+  id       String
+
+  key String
+
+  name        String
+  description String?
+  banner      String?
+
+  stack      Int  @default(1) @db.SmallInt
+  usable     Boolean @default(false)
+  equippable Int  @default(0) @db.SmallInt
+
+  embed_title       String?
+  embed_description String?
+  embed_url         String?
+
+  created_by String?
+  updated_at DateTime?
+
+  @@id([guild_id, id], map: "item_pkey")
+  @@unique([guild_id, key], map: "item_key")
+  @@map("items")
+}
+
+model Player {
+  guild     Guild        @relation(fields: [guild_id], references: [id], onDelete: Cascade, map: "fkey.guild_id")
+  inventory PlayerItem[]
+  attacks   PlayerAttack[]
+  arts      PlayerArt[]
+
+  name        String
+  surname     String
+  credibility Int     @default(0)
+  history     String?
+
+  guild_id String
+  id       String
+  breed    PlayerBreed
+
+  cash Int @default(0)
+
+  life       Int @default(0)
+  blood      Int @default(0)
+  breath     Int @default(0)
+  exp        Int @default(0)
+  force      Int @default(0)
+  resistance Int @default(0)
+  velocity   Int @default(1)
+
+  appearance String?
+  banner     String?
+
+  updated_at DateTime?
+
+  items_count Int @default(0)
+  arts_count Int @default(0)
+  attacks_count Int @default(0)
+
+  @@id([guild_id, id], map: "player_pkey")
+  @@unique([guild_id, surname], map: "player_surname")
+  @@map("players")
+}
+
+model Location {
+  guild Guild @relation(fields: [guild_id], references: [id], onDelete: Cascade, map: "fkey.guild_id")
+  location Location? @relation("ParentLocation", fields: [guild_id, location_id], references: [guild_id, id], map: "fkey.location_id", onDelete: SetDefault)
+  locations Location[] @relation("ParentLocation")
+  guild_id String
+  id String
+  key String
+
+  name String @db.VarChar(32)
+  location_id String?
+  description String? @db.VarChar(2048)
+  resume_description String? @db.VarChar(128)
+  access Int @db.SmallInt @default(0)
+  banner String?
+  // Create Access Player And Rank!
+
+  @@id([guild_id, id], map: "locations_pkey")
+  @@unique([guild_id, key], map: "locations_key")
+  @@map("locations")
+}
+
+// model HabilityLevel {
+//   guild_id String
+//   id String
+
+//   hability Hability @relation(fields: [guild_id, hability_id], references: [guild_id, id], onDelete: Cascade)
+//   hability_id String
+//   name String
+//   key String
+//   increment_life Int @default(0)
+//   increment_blood Int @default(0)
+//   increment_breath Int @default(0)
+//   increment_force Int @default(0)
+//   increment_resistance Int @default(0)
+//   increment_velocity Int @default(0)
+  
+//   @@id([guild_id, hability_id, id])
+// }
+
+// model Hability {
+//   name String @db.VarChar(32)
+//   levels HabilityLevel[]
+//   guild_id String
+//   id String
+
+//   @@id([guild_id, id])
+// }
+
+model PlayerArt {
+  guild Guild @relation(fields: [guild_id], references: [id], onDelete: Cascade, map: "fkey.guild_id")
+  player Player @relation(fields: [guild_id, player_id], references: [guild_id, id], onDelete: Cascade, map: "fkey.player_id")
+  art Art @relation(fields: [guild_id, art_id], references: [guild_id, id], onDelete: Cascade, map: "fkey.art_id")
+
+  guild_id String
+  player_id String
+  art_id String
+
+  created_at DateTime @default(now())
+
+  @@id([guild_id, player_id, art_id])
+  @@map("player_arts")
+}
+
+model PlayerItem {
+  guild  Guild  @relation(fields: [guild_id], references: [id], onDelete: Cascade, map: "fkey.guild_id")
+  player Player @relation(fields: [guild_id, player_id], references: [guild_id, id], onDelete: Cascade, map: "fkey.player_id")
+  item   Item   @relation(fields: [guild_id, item_id], references: [guild_id, id], onDelete: Cascade, map: "fkey.item_id")
+
+  guild_id  String
+  item_id   String
+  player_id String
+
+  stack Int @default(1) @db.SmallInt
+
+  created_at DateTime @default(now())
+
+  @@id([guild_id, player_id, item_id], map: "inventory_pkey")
+  @@map("inventory")
+}
+
+model PlayerAttack {
+  guild  Guild  @relation(fields: [guild_id], references: [id], onDelete: Cascade, map: "fkey.guild_id")
+  player Player @relation(fields: [guild_id, player_id], references: [guild_id, id], onDelete: Cascade, map: "fkey.player_id")
+  attack Attack @relation(fields: [guild_id, attack_id], references: [guild_id, id], onDelete: Cascade, map: "fkey.attack_id")
+
+  guild_id  String
+  player_id String
+  attack_id String
+
+  created_at DateTime @default(now())
+
+  @@id([guild_id, player_id, attack_id])
+  @@map("player_attacks")
+}
+
