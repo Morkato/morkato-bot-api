@@ -9,6 +9,7 @@ import { formatGuild } from './formatters'
 const locationCode = "models/guilds"
 
 export function delGuild(app: MorkatoAPP, pg: Client): GuildDatabase['delGuild'] {
+  const logger = app.getLoggerContext(locationCode)
   return async ({ id }) => {
     const values: unknown[] = []
     const where = {
@@ -16,7 +17,9 @@ export function delGuild(app: MorkatoAPP, pg: Client): GuildDatabase['delGuild']
     }
 
     const query = guildDeleteQueryBuilder.sql(where, values)
+    logger.debug("SQL QUERY: %s with values: %s", query, values)
     const {rows, rowCount} = await pg.query(query, values)
+    logger.debug("RESULT DELETE QUERY: %s where: %s", rows, where)
 
     if (!rowCount || rowCount === 0) {
       throw new GuildNotFoundError({

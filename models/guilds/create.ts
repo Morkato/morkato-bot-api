@@ -19,6 +19,7 @@ export function assertGuildCreateError(err: DatabaseError, guild_id: string) {
 }
 
 export function createGuild(app: MorkatoAPP, pg: Client): GuildDatabase['createGuild'] {
+  const logger = app.getLoggerContext(locationCode)
   return async ({ id, default_player_life, default_player_breath, default_player_blood, default_player_force, default_player_resistance, default_player_velocity }) => {
     const values: unknown[] = []
     const payload = {
@@ -32,9 +33,13 @@ export function createGuild(app: MorkatoAPP, pg: Client): GuildDatabase['createG
     }
 
     const query = guildInsertQueryBuilder.sql({}, payload, values)
+    logger.debug("SQL QUERY: %s with values: %s", query, values)
     try {
-      const result = await pg.query(query, values)
-      return formatGuild(result.rows[0]);
+      const {rows} = await pg.query(query, values)
+      logger.debug("RESULT CREATE QUERY: %s with payload: %s", rows, payload)
+      const guild = formatGuild(rows[0])
+      app.notify("guild.create", guild)
+      return guild;
     } catch (err) {
       if (err instanceof DatabaseError) {
         assertGuildCreateError(err, id)
