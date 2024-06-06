@@ -11,6 +11,7 @@ import { stripAll } from 'utils'
 const locationCode = "models/attacks"
 
 export function createAttack(app: MorkatoAPP, pg: Client): AttackDatabase["createAttack"] {
+  const logger = app.getLoggerContext(locationCode)
   return async ({ name, guild_id, art_id, ...data }) => {
     const values: unknown[] = []
     const payload = Object.assign(data, {
@@ -21,10 +22,14 @@ export function createAttack(app: MorkatoAPP, pg: Client): AttackDatabase["creat
     })
 
     const sql = attackInsertQueryBuilder.sql({}, payload, values)
+    logger.debug("SQL QUERY: %s with values: %s", sql, values)
     async function execute(guildCreated: boolean = false) {
       try {
-        const { rows: [attack] } = await pg.query(sql, values)
-        return formatAttack(attack);
+        const { rows } = await pg.query(sql, values)
+        logger.debug("RESULT CREATE QUERY: %s with payload: %s", sql, payload)
+        const attack = formatAttack(rows[0])
+        app.notify("attack.create", attack)
+        return attack;
       } catch (err) {
         if (err instanceof DatabaseError) {
           if (err.constraint === 'attack.guild' && !guildCreated) {

@@ -9,6 +9,7 @@ import { formatAttack } from './formatters'
 const locationCode = "models/attacks"
 
 export function findAttack(app: MorkatoAPP, pg: Client): AttackDatabase["findAttack"] {
+  const logger = app.getLoggerContext(locationCode)
   return async ({ guild_id, art_id }) => {
     const values: unknown[] = []
     const where = {
@@ -17,12 +18,15 @@ export function findAttack(app: MorkatoAPP, pg: Client): AttackDatabase["findAtt
     }
 
     const sql = attacksQueryBuilder.sql(where, values)
+    logger.debug("SQL QUERY: %s with values: %s", sql, values)
     const { rows } = await pg.query(sql, values)
+    logger.debug("RESULT FIND QUERY: %s where: %s", rows, where)
     return rows.map(formatAttack);
   }
 }
 
 export function getAttack(app: MorkatoAPP, pg: Client): AttackDatabase["getAttack"] {
+  const logger = app.getLoggerContext(locationCode)
   return async ({ guild_id, id }) => {
     const values: unknown[] = []
     const where = {
@@ -31,7 +35,9 @@ export function getAttack(app: MorkatoAPP, pg: Client): AttackDatabase["getAttac
     }
 
     const sql = attackQueryBuilder.sql(where, values)
+    logger.debug("SQL QUERY: 5s with values: %s", sql, values)
     const { rowCount, rows } = await pg.query(sql, values)
+    logger.debug("RESULT GET QUERY: %s where: %s", rows, where)
 
     if (!rowCount || rowCount === 0) {
       throw new AttackNotFoundError({

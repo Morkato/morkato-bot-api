@@ -11,6 +11,7 @@ import { stripAll } from 'utils'
 const locationCode = "models/attacks"
 
 export function updateAttack(app: MorkatoAPP, pg: Client): AttackDatabase["updateAttack"] {
+  const logger = app.getLoggerContext(locationCode)
   return async ({ guild_id, id, name, ...data }) => {
     const values: unknown[] = []
     const where = {
@@ -23,9 +24,11 @@ export function updateAttack(app: MorkatoAPP, pg: Client): AttackDatabase["updat
       updated_at: literal("NOW()")
     })
 
-    const sql = attackUpdateQueryBuilder.sql(where, payload, values)
     const before = await app.database.getAttack({ guild_id, id })
-    const { rows: [result], rowCount } = await pg.query(sql, values)
+    const sql = attackUpdateQueryBuilder.sql(where, payload, values)
+    logger.debug("SQL QUERY: 5s with values: %s", sql, values)
+    const { rows, rowCount } = await pg.query(sql, values)
+    logger.debug("RESULT UPDATE QUERY: %s with payload: %s where: %s", rows, payload, where)
 
     if (!rowCount || rowCount === 0) {
       throw new AttackNotFoundError({
@@ -39,8 +42,8 @@ export function updateAttack(app: MorkatoAPP, pg: Client): AttackDatabase["updat
       });
     }
 
-    const attack = formatAttack(result)
-    app.notify("attack.update", [before, attack])
+    const attack = formatAttack(rows[0])
+    app.notify("attack.update", before, attack)
     return attack;
   }
 }

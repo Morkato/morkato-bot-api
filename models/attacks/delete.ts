@@ -9,6 +9,7 @@ import { formatAttack } from './formatters'
 const locationCode = "models/attacks"
 
 export function delAttack(app: MorkatoAPP, pg: Client): AttackDatabase["delAttack"] {
+  const logger = app.getLoggerContext(locationCode)
   return async ({ guild_id, id }) => {
     const values: unknown[] = []
     const where = {
@@ -17,7 +18,9 @@ export function delAttack(app: MorkatoAPP, pg: Client): AttackDatabase["delAttac
     }
 
     const sql = attackDelQueryBuilder.sql(where, values)
-    const { rows:[result], rowCount } = await pg.query(sql, values)
+    logger.debug("SQL DELETE QUERY: %s with values: %s", sql, values)
+    const { rows, rowCount } = await pg.query(sql, values)
+    logger.debug("RESULT DELETE QUERY: %s where: %s", rows, where)
     
     if (!rowCount || rowCount === 0) {
       throw new AttackNotFoundError({
@@ -31,7 +34,7 @@ export function delAttack(app: MorkatoAPP, pg: Client): AttackDatabase["delAttac
       });
     }
 
-    const attack = formatAttack(result)
+    const attack = formatAttack(rows[0])
     app.notify("attack.delete", attack)
     return attack;
   };
