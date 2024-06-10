@@ -1,26 +1,44 @@
-import type { MorkatoAPP } from 'morkato'
+import type { MorkatoAPP } from 'morkato/app'
 
 // import locationRouter from '../routes/location'
 // import playerRouter from '../routes/player'
-import attackRouter from '../routes/attack'
-import guildRouter from '../routes/guild'
+// import attackRouter from '../routes/attack'
+// import guildRouter from '../routes/guild'
 // import itemRouter from '../routes/item'
-import artRouter from '../routes/art'
-import notfound from 'notfound'
+// import artRouter from '../routes/art'
+// import notfound from 'notfound'
+import { NotFoundError } from 'errors'
+import express from 'express'
+import cors from 'cors'
 
-const locationCode = "app/router"
+function getCors() {
+  return cors({
+    origin: [ 'http://localhost:3000' ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: [
+      'Content-Type',
+      'Content-Length',
+      'Content-Take',
+      'Content-Skip',
+      'Authorization',
+      'X-Access-Control'
+    ]
+  })
+}
 
 export default (app: MorkatoAPP) => {
-  app.express.get("/ping", (req, res) => {
-    res.status(200).json(Date.now())
-  })
-  
-  app.express.use('/arts', artRouter(app))
-  app.express.use('/guilds', guildRouter(app))
-  // app.express.use('/items', itemRouter(app))
-  app.express.use('/attacks', attackRouter(app))
-  // app.express.use('/players', playerRouter(app))
-  // app.express.use('/locations', locationRouter(app))
-  app.express.use('*', (req, res) => notfound(req, res))
-  app.logger.info(locationCode, "All routes have been configured.")
+  const jsonHandler = express.json()
+  const corsHandler = getCors()
+
+  app.use('/', async (req, res, {next}) => jsonHandler(req, res, next))
+  app.use('/', async (req, res, {next}) => corsHandler(req, res, next))
+
+  app.loadController("app/controllers/arts")
+  app.loadController("app/controllers/etc")
+
+  app.use('*', (req, res) => Promise.reject(
+    new NotFoundError({
+      message: "Opps! Parece que você encontrou uma rota que não existe."
+    })
+  ))
 }
