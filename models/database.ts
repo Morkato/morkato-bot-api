@@ -1,4 +1,4 @@
-import type { MorkatoAPP } from 'morkato'
+import type { MorkatoAPP } from 'morkato/app'
 import type { AttackDatabase } from './attacks'
 import type { GuildDatabase } from './guilds'
 import type { ItemDatabase } from './items'

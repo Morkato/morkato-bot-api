@@ -1,4 +1,4 @@
-import type { MorkatoAPP } from 'morkato'
+import type { MorkatoAPP } from 'morkato/app'
 import type { Art } from '../arts'
 import type { Client } from 'pg'
 

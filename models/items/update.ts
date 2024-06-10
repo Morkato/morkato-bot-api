@@ -1,4 +1,4 @@
-import type { MorkatoAPP } from 'morkato'
+import type { MorkatoAPP } from 'morkato/app'
 import type { ItemDatabase } from "."
 import type { Client } from "pg"
 
@@ -23,7 +23,6 @@ export function updateItem(app: MorkatoAPP, pg: Client): ItemDatabase['updateIte
     })
 
     const sql = itemUpdateQueryBuilder.sql(where, payload, values)
-    app.logger.debug(locationCode, "SQL QUERY: %s with values: %s", sql, values)
     try {
       const {rows, rowCount} = await pg.query(sql, values)
 

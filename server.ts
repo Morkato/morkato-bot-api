@@ -2,7 +2,7 @@ import 'dotenv/config'
 
 import { onRequestError } from 'app/observers/request-error'
 import { LoggerLevel } from 'morkato/logger'
-import morkato from "morkato"
+import { MorkatoAPP } from "morkato/app"
 import {
   plAttack,
   plItem,
@@ -15,7 +15,7 @@ import {
 } from 'app/observers/gateway'
 
 async function main() {
-  const app = morkato(process.env.NODE_ENV === 'development')
+  const app = new MorkatoAPP()
   app.logger.setDefaultFormatter("[%datetime] [%levelname: %localcode] %message")
   app.logger.ambient("development", new Set([
     LoggerLevel.DEBUG,
@@ -32,10 +32,8 @@ async function main() {
   ]))
 
   app.logger.info("morkato/server", "This is ambient: %s", process.env.NODE_ENV ?? "development")
-  await app.loadExtension("app/extensions/cors")
-  await app.loadExtension("app/extensions/middlewares")
+
   await app.loadExtension("app/extensions/router")
-  await app.connectDatabase()
   
   app.subscribe("request-error", onRequestError)
   app.subscribe("player-attack.create", plAttack.create)
@@ -61,8 +59,7 @@ async function main() {
   app.subscribe("art.update", art.update)
   app.subscribe("art.delete", art.delete)
 
-  app.startWebSocketServer() // Listening in ws://localhost:5500
-  app.startAPI(5500) // Listening in http://localhost:5500
+  await app.start(5500) // Listening in ws://localhost:5500 and Listening in http://localhost:5500
 }
 
 main()

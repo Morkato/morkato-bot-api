@@ -1,4 +1,4 @@
-import type { MorkatoAPP } from 'morkato'
+import type { MorkatoAPP } from 'morkato/app'
 import type { ItemDatabase, Item } from "."
 import type { Client } from "pg"
 
@@ -20,12 +20,10 @@ export function createItem(app: MorkatoAPP, pg: Client): ItemDatabase['createIte
     })
 
     const sql = itemInsertQueryBuilder.sql({}, payload, values)
-    app.logger.debug(locationCode, "SQL QUERY: %s with values: %s", sql, values)
     async function execute(guildHasCreated: boolean = false): Promise<Item> {
       try {
         const {rows, rowCount} = await pg.query(sql, values)
         const item = formatItem(rows[0])
-        app.logger.debug(locationCode, "Result ITEM CREATE QUERY: %s With payload: %s", item, payload)
         return item;
       } catch (err) {
         if (err instanceof DatabaseError) {

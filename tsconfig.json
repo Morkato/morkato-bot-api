@@ -23,13 +23,13 @@
     "tests/**/*.spec.ts"
   ],
   "exclude": [
-    "routes/item",
-    "routes/location",
-    "routes/player",
+    "**/*.deprecated.ts",
+    "app/routes/location",
+    "app/routes/player",
+    ".ignore",
     "node_modules",
     "jest.config.ts",
-    "tests",
-    "spec",
-    "id.ts"
+    "jest.setup.ts",
+    "tests"
   ]
 }

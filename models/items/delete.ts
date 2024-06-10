@@ -1,4 +1,4 @@
-import type { MorkatoAPP } from 'morkato'
+import type { MorkatoAPP } from 'morkato/app'
 import type { ItemDatabase } from "."
 import type { Client } from "pg"
 
@@ -17,9 +17,7 @@ export function delItem(app: MorkatoAPP, pg: Client): ItemDatabase['delItem'] {
     }
 
     const sql = itemDeleteQueryBuilder.sql(where, values)
-    app.logger.debug(locationCode, "SQL QUERY (item.delete): %s with values: %s", sql, values)
     const {rows, rowCount} = await pg.query(sql, values)
-    app.logger.debug(locationCode, "Result ROWS QUERY (item.delete): %s Fetch items where: %s", rows, where)
     if (!rowCount || rowCount === 0) {
       throw new ItemNotFoundError({
         errorLocationCode: locationCode,
