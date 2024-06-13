@@ -26,6 +26,7 @@ BEGIN
   UPDATE "items" SET art_id = NULL
   WHERE guild_id = OLD.guild_id
     AND art_id = OLD.id;
+  RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER "ArtDeleteItem" BEFORE DELETE ON "arts"
