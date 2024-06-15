@@ -1,14 +1,13 @@
-import type { MorkatoAPP } from 'morkato/app'
-import type { ItemDatabase } from "."
-import type { Client } from "pg"
+import type { ConnectionContext } from 'models/database'
+import type { ItemDatabase } from '.'
 
-import { ItemNotFoundError, InternalServerError } from "errors"
-import { itemDeleteQueryBuilder } from "models/queries/items"
-import { formatItem } from "./formatter"
+import { ItemNotFoundError, InternalServerError } from 'errors'
+import { itemDeleteQueryBuilder } from 'models/queries/items'
+import { formatItem } from './formatter'
 
 const locationCode = "models/items"
 
-export function delItem(app: MorkatoAPP, pg: Client): ItemDatabase['delItem'] {
+export function delItem({logger, locationCode, pg, dispatch}: ConnectionContext): ItemDatabase['delItem'] {
   return async ({ guild_id, id }) => {
     const values: unknown[] = []
     const where = {
@@ -17,7 +16,9 @@ export function delItem(app: MorkatoAPP, pg: Client): ItemDatabase['delItem'] {
     }
 
     const sql = itemDeleteQueryBuilder.sql(where, values)
+    logger.debug("SQL QUERY: %s with values: %s", sql, values)
     const {rows, rowCount} = await pg.query(sql, values)
+    logger.debug("RESULT DELETE QUERY: %s where: %s", rows, where)
     if (!rowCount || rowCount === 0) {
       throw new ItemNotFoundError({
         errorLocationCode: locationCode,
@@ -31,7 +32,7 @@ export function delItem(app: MorkatoAPP, pg: Client): ItemDatabase['delItem'] {
     }
 
     const item = formatItem(rows[0])
-    app.notify("item.delete", item)
+    dispatch("item.delete", item)
     return item;
   }
 }

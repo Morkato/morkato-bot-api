@@ -1,16 +1,13 @@
-import type { MorkatoAPP } from 'morkato/app'
-import type { ItemDatabase, Item } from "."
-import type { Client } from "pg"
+import type { ConnectionContext } from 'models/database'
+import type { ItemDatabase, Item } from '.'
 
-import { ItemAlreadyExistsError, ArtNotFoundError, InternalServerError } from "errors"
-import { itemInsertQueryBuilder } from "models/queries/items"
-import { formatItem } from "./formatter"
-import { DatabaseError } from "pg"
-import { stripAll } from "utils"
+import { ItemAlreadyExistsError, ArtNotFoundError, InternalServerError } from 'errors'
+import { itemInsertQueryBuilder } from 'models/queries/items'
+import { formatItem } from './formatter'
+import { DatabaseError } from 'pg'
+import { stripAll } from 'utils'
 
-const locationCode = "models/items"
-
-export function createItem(app: MorkatoAPP, pg: Client): ItemDatabase['createItem'] {
+export function createItem({logger, models, locationCode, pg, dispatch}: ConnectionContext): ItemDatabase['createItem'] {
   return async ({ guild_id, name, ...data }) => {
     const values: unknown[] = []
     const payload = Object.assign({}, data, {
@@ -20,15 +17,17 @@ export function createItem(app: MorkatoAPP, pg: Client): ItemDatabase['createIte
     })
 
     const sql = itemInsertQueryBuilder.sql({}, payload, values)
+    logger.debug("SQL QUERY: %s with values: %s", sql, values)
     async function execute(guildHasCreated: boolean = false): Promise<Item> {
       try {
-        const {rows, rowCount} = await pg.query(sql, values)
+        const {rows} = await pg.query(sql, values)
+        logger.debug("RESULT CREATE QUERY: %s with payload: %s", rows, payload)
         const item = formatItem(rows[0])
         return item;
       } catch (err) {
         if (err instanceof DatabaseError) {
           if (err.constraint === 'item.guild' && !guildHasCreated) {
-            await app.database.createGuild({ id: guild_id })
+            await models.createGuild({ id: guild_id })
             return execute(true);
           } else if (err.constraint === 'item.key') {
             throw new ItemAlreadyExistsError({
@@ -36,11 +35,11 @@ export function createItem(app: MorkatoAPP, pg: Client): ItemDatabase['createIte
               guild_id: guild_id,
               item_name: name
             });
-          } else if (err.constraint === 'item.art') {
+          } else if (err.constraint === 'item.art' && data.art_id) {
             throw new ArtNotFoundError({
               errorLocationCode: locationCode,
               guild_id: guild_id,
-              art_id: data.art_id as string
+              art_id: data.art_id
             });
           }
 

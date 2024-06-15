@@ -1,14 +1,11 @@
-import type { MorkatoAPP } from 'morkato/app'
-import type { ItemDatabase } from "."
-import type { Client } from "pg"
+import type { ConnectionContext } from 'models/database'
+import type { ItemDatabase } from '.'
 
-import { itemQueryBuilder, itemsQueryBuilder } from "models/queries/items"
-import { ItemNotFoundError, InternalServerError } from "errors"
-import { formatItem } from "./formatter"
+import { itemQueryBuilder, itemsQueryBuilder } from 'models/queries/items'
+import { ItemNotFoundError, InternalServerError } from 'errors'
+import { formatItem } from './formatter'
 
-const locationCode = "models/items"
-
-export function findItem(app: MorkatoAPP, pg: Client): ItemDatabase['findItem'] {
+export function findItem({logger, pg}: ConnectionContext): ItemDatabase['findItem'] {
   return async ({ guild_id }) => {
     const values: unknown[] = []
     const where = {
@@ -16,12 +13,14 @@ export function findItem(app: MorkatoAPP, pg: Client): ItemDatabase['findItem'] 
     }
 
     const sql = itemsQueryBuilder.sql(where, values)
-    const {rows, rowCount} = await pg.query(sql)
+    logger.debug("SQL QUERY: %s with values: %s", sql, values)
+    const {rows} = await pg.query(sql)
+    logger.debug("RESULT FIND QUERY: %s where: 5s", rows, where)
     return rows.map(formatItem);
   }
 }
 
-export function getItem(app: MorkatoAPP, pg: Client): ItemDatabase['getItem'] {
+export function getItem({logger, locationCode, pg}: ConnectionContext): ItemDatabase['getItem'] {
   return async ({ guild_id, id }) => {
     const values: unknown[] = []
     const where = {
@@ -30,7 +29,9 @@ export function getItem(app: MorkatoAPP, pg: Client): ItemDatabase['getItem'] {
     }
 
     const sql = itemQueryBuilder.sql(where, values)
+    logger.debug("SQL QUERY: %s with values: %s", sql, values)
     const {rows, rowCount} = await pg.query(sql, values)
+    logger.debug("RESULT GET QUERY: %s where: %s", rows, where)
     
     if (!rowCount || rowCount === 0) {
       throw new ItemNotFoundError({

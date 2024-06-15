@@ -1,6 +1,4 @@
-import type { MorkatoAPP } from 'morkato/app'
-import type { Client } from "pg"
-
+import type { ConnectionContext } from 'models/database'
 import { findItem, getItem } from "./get-find"
 import { createItem } from "./create"
 import { updateItem } from "./update"
@@ -26,13 +24,13 @@ export type ItemDatabase = {
   delItem({ guild_id, id }: Pick<Item, 'guild_id' | 'id'>): Promise<Item>
 }
 
-export function prepareItem(app: MorkatoAPP, pg: Client): ItemDatabase {
+export function prepareItem(ctx: ConnectionContext): ItemDatabase {
   return {
-    findItem: findItem(app, pg),
-    getItem: getItem(app, pg),
-    createItem: createItem(app, pg),
-    updateItem: updateItem(app, pg),
-    delItem: delItem(app, pg)
+    findItem: findItem(ctx),
+    getItem: getItem(ctx),
+    createItem: createItem(ctx),
+    updateItem: updateItem(ctx),
+    delItem: delItem(ctx)
   }
 }
 
