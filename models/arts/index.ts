@@ -1,6 +1,4 @@
-import type { MorkatoAPP } from 'morkato/app'
-import type { Client } from 'pg'
-
+import type { ConnectionContext } from 'models/database'
 import { findArt, getArt } from "./get-find"
 import { createArt } from "./create"
 import { updateArt } from "./update"
@@ -17,6 +15,7 @@ export type Art = {
   updated_at: null | number
   attacks: Array<Omit<any, 'guild_id' | 'art_id'>>
 }
+
 export type ArtDatabase = {
   findArt({ guild_id }: Pick<Art, 'guild_id'>): Promise<Art[]>
   getArt({ guild_id, id }: Pick<Art, 'guild_id' | 'id'>): Promise<Art>
@@ -25,13 +24,13 @@ export type ArtDatabase = {
   delArt({ guild_id, id }: Pick<Art, 'guild_id' | 'id'>): Promise<Art>
 }
 
-export function prepareArt(app: MorkatoAPP, pg: Client): ArtDatabase {
+export function prepareArt(ctx: ConnectionContext): ArtDatabase {
   return {
-    findArt: findArt(app, pg),
-    getArt: getArt(app, pg),
-    createArt: createArt(app, pg),
-    updateArt: updateArt(app, pg),
-    delArt: delArt(app, pg)
+    findArt: findArt(ctx),
+    getArt: getArt(ctx),
+    createArt: createArt(ctx),
+    updateArt: updateArt(ctx),
+    delArt: delArt(ctx)
   };
 }
 

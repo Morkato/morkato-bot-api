@@ -1,15 +1,11 @@
-import type { MorkatoAPP } from 'morkato/app'
+import type { ConnectionContext } from 'models/database'
 import type { ArtDatabase } from '.'
-import type { Client } from 'pg'
 
 import { artsQueryBuilder, artQueryBuilder } from 'models/queries/arts'
 import { ArtNotFoundError, InternalServerError } from 'errors'
 import { formatArt } from './formatters'
 
-const locationCode = "models/arts"
-
-export function findArt(app: MorkatoAPP, pg: Client): ArtDatabase['findArt'] {
-  const logger = app.getLoggerContext(locationCode)
+export function findArt({logger, pg}: ConnectionContext): ArtDatabase['findArt'] {
   return async ({ guild_id }) => {
     const values: unknown[] = []
     const where = {
@@ -24,8 +20,7 @@ export function findArt(app: MorkatoAPP, pg: Client): ArtDatabase['findArt'] {
   }
 }
 
-export function getArt(app: MorkatoAPP, pg: Client): ArtDatabase['getArt'] {
-  const logger = app.getLoggerContext(locationCode)
+export function getArt({logger, locationCode, pg}: ConnectionContext): ArtDatabase['getArt'] {
   return async ({ guild_id, id }) => {
     const values: unknown[] = []
     const where = {
