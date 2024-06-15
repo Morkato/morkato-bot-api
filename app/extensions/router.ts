@@ -1,12 +1,5 @@
 import type { MorkatoAPP } from 'morkato/app'
 
-// import locationRouter from '../routes/location'
-// import playerRouter from '../routes/player'
-// import attackRouter from '../routes/attack'
-// import guildRouter from '../routes/guild'
-// import itemRouter from '../routes/item'
-// import artRouter from '../routes/art'
-// import notfound from 'notfound'
 import { NotFoundError } from 'errors'
 import express from 'express'
 import cors from 'cors'
@@ -33,6 +26,9 @@ export default (app: MorkatoAPP) => {
   app.use('/', async (req, res, {next}) => jsonHandler(req, res, next))
   app.use('/', async (req, res, {next}) => corsHandler(req, res, next))
 
+  app.loadController("app/controllers/attacks")
+  app.loadController("app/controllers/guilds")
+  app.loadController("app/controllers/items")
   app.loadController("app/controllers/arts")
   app.loadController("app/controllers/etc")
 
