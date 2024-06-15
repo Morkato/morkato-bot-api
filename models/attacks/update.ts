@@ -1,6 +1,5 @@
-import type { MorkatoAPP } from 'morkato/app'
+import type { ConnectionContext } from 'models/database'
 import type { AttackDatabase } from '.'
-import type { Client } from 'pg'
 
 import { AttackNotFoundError, InternalServerError } from 'errors'
 import { attackUpdateQueryBuilder } from 'models/queries/attacks'
@@ -8,10 +7,7 @@ import { literal } from 'models/sql-builder'
 import { formatAttack } from './formatters'
 import { stripAll } from 'utils'
 
-const locationCode = "models/attacks"
-
-export function updateAttack(app: MorkatoAPP, pg: Client): AttackDatabase["updateAttack"] {
-  const logger = app.getLoggerContext(locationCode)
+export function updateAttack({logger, models, locationCode, pg, dispatch}: ConnectionContext): AttackDatabase["updateAttack"] {
   return async ({ guild_id, id, name, ...data }) => {
     const values: unknown[] = []
     const where = {
@@ -24,7 +20,7 @@ export function updateAttack(app: MorkatoAPP, pg: Client): AttackDatabase["updat
       updated_at: literal("NOW()")
     })
 
-    const before = await app.database.getAttack({ guild_id, id })
+    const before = await models.getAttack({ guild_id, id })
     const sql = attackUpdateQueryBuilder.sql(where, payload, values)
     logger.debug("SQL QUERY: 5s with values: %s", sql, values)
     const { rows, rowCount } = await pg.query(sql, values)
@@ -43,7 +39,7 @@ export function updateAttack(app: MorkatoAPP, pg: Client): AttackDatabase["updat
     }
 
     const attack = formatAttack(rows[0])
-    app.notify("attack.update", before, attack)
+    dispatch("attack.update", before, attack)
     return attack;
   }
 }

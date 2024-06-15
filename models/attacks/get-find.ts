@@ -1,15 +1,11 @@
-import type { MorkatoAPP } from 'morkato/app'
+import type { ConnectionContext } from 'models/database'
 import type { AttackDatabase } from '.'
-import type { Client } from 'pg'
 
 import { attacksQueryBuilder, attackQueryBuilder } from 'models/queries/attacks'
 import { AttackNotFoundError, InternalServerError } from 'errors'
 import { formatAttack } from './formatters'
 
-const locationCode = "models/attacks"
-
-export function findAttack(app: MorkatoAPP, pg: Client): AttackDatabase["findAttack"] {
-  const logger = app.getLoggerContext(locationCode)
+export function findAttack({logger, pg}: ConnectionContext): AttackDatabase["findAttack"] {
   return async ({ guild_id, art_id }) => {
     const values: unknown[] = []
     const where = {
@@ -25,8 +21,7 @@ export function findAttack(app: MorkatoAPP, pg: Client): AttackDatabase["findAtt
   }
 }
 
-export function getAttack(app: MorkatoAPP, pg: Client): AttackDatabase["getAttack"] {
-  const logger = app.getLoggerContext(locationCode)
+export function getAttack({logger, locationCode, pg}: ConnectionContext): AttackDatabase["getAttack"] {
   return async ({ guild_id, id }) => {
     const values: unknown[] = []
     const where = {

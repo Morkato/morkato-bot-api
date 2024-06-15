@@ -1,7 +1,6 @@
-import type { MorkatoAPP } from 'morkato/app'
+import type { ConnectionContext } from 'models/database'
 import type { Guild } from '../guilds'
 import type { Art } from '../arts'
-import type { Client } from "pg"
 
 import { findAttack, getAttack } from "./get-find"
 import { createAttack } from "./create"
@@ -33,13 +32,13 @@ export type AttackDatabase = {
   delAttack({ guild_id, id }: Pick<Attack, 'guild_id' | 'id'>): Promise<Attack>
 }
 
-export function prepareAttack(app: MorkatoAPP, pg: Client): AttackDatabase {
+export function prepareAttack(ctx: ConnectionContext): AttackDatabase {
   return {
-    findAttack: findAttack(app, pg),
-    getAttack: getAttack(app, pg),
-    createAttack: createAttack(app, pg),
-    updateAttack: updateAttack(app, pg),
-    delAttack: delAttack(app, pg)
+    findAttack: findAttack(ctx),
+    getAttack: getAttack(ctx),
+    createAttack: createAttack(ctx),
+    updateAttack: updateAttack(ctx),
+    delAttack: delAttack(ctx)
   };
 }
 

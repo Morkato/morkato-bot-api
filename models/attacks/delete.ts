@@ -1,15 +1,11 @@
-import type { MorkatoAPP } from 'morkato/app'
+import type { ConnectionContext } from 'models/database'
 import type { AttackDatabase } from '.'
-import type { Client } from 'pg'
 
 import { AttackNotFoundError, InternalServerError } from 'errors'
 import { attackDelQueryBuilder } from 'models/queries/attacks'
 import { formatAttack } from './formatters'
 
-const locationCode = "models/attacks"
-
-export function delAttack(app: MorkatoAPP, pg: Client): AttackDatabase["delAttack"] {
-  const logger = app.getLoggerContext(locationCode)
+export function delAttack({logger, locationCode, pg, dispatch}: ConnectionContext): AttackDatabase["delAttack"] {
   return async ({ guild_id, id }) => {
     const values: unknown[] = []
     const where = {
@@ -35,7 +31,7 @@ export function delAttack(app: MorkatoAPP, pg: Client): AttackDatabase["delAttac
     }
 
     const attack = formatAttack(rows[0])
-    app.notify("attack.delete", attack)
+    dispatch("attack.delete", attack)
     return attack;
   };
 }
