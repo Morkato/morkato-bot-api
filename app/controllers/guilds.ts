@@ -1,6 +1,5 @@
 import type { PayloadType } from 'morkato/controller'
 import type { Controller } from 'morkato/controller'
-import type { LoggerContext } from 'morkato/app'
 import type { Request, Response } from 'express'
 import type { Guild } from 'models/guilds'
 

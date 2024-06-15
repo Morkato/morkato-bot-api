@@ -24,9 +24,9 @@ export type LoggerContext = {
 
 export class MorkatoAPP {
   public readonly observers: Partial<Record<string, Subscriber[]>> = {}
-  public readonly ambient: string = process.env.NODE_ENV ?? "development"
   public readonly logger: Logger = createLogger(this.ambient)
   private readonly loggerContext: LoggerContext = this.getLoggerContext("morkato/app")
+  private readonly databaseNameAmbient: Record<string, string> = {}
   public readonly dev: boolean = this.ambient === 'development'
   public readonly app: Express = express()
   public readonly server: Server = createServer(this.app)
@@ -43,6 +43,8 @@ export class MorkatoAPP {
   // @ts-ignore
   public readonly database: Database = undefined
 
+  constructor(public readonly ambient: string) {}
+
   public getLoggerContext(locode: string): LoggerContext {
     return {
       debug: (message, ...args) => this.logger.debug(locode, message, ...args),
@@ -51,6 +53,10 @@ export class MorkatoAPP {
       error: (message, error, ...args) => this.logger.error(locode, message, error, ...args),
       critical: (message, error, ...args) => this.logger.critical(locode, message, error, ...args)
     }
+  }
+
+  public databaseAmbient(ambient: string, uri: string): void {
+    this.databaseNameAmbient[ambient] = uri
   }
 
   public startAPI(port: number) {
@@ -70,9 +76,19 @@ export class MorkatoAPP {
   }
 
   public async connectDatabase(): Promise<void> {
-    this.loggerContext.info("Connect database with url: postgres://%s:%s@%s:%s/%s", process.env.POSTGRES_USER, process.env.POSTGRES_PASSWORD, process.env.POSTGRES_HOST, process.env.POSTGRES_PORT, this.dev ? process.env.POSTGRES_DEV_DB : process.env.POSTGRES_DB)
+    const database = this.databaseNameAmbient[this.ambient]
+    if (!database) {
+      throw new Error("This ambient: " + this.ambient + " have not database configured.");
+    }
+    this.loggerContext.info("Connect database with url: postgres://%s:%s@%s:%s/%s", process.env.POSTGRES_USER, process.env.POSTGRES_PASSWORD, process.env.POSTGRES_HOST, process.env.POSTGRES_PORT, database)
     await this.pg.connect()
-    Object.assign(this, { database: prepareDatabase(this, this.pg) })
+    Object.assign(this, {
+      database: prepareDatabase({
+        dispatch: this.notify.bind(this),
+        getLogger: this.getLoggerContext.bind(this),
+        pg: this.pg
+      })
+    })
   }
 
   public async disconnectDatabase(): Promise<void> {

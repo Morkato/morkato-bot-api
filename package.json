@@ -13,7 +13,7 @@
     "drop": "rm -rf ./out",
     "start": "NODE_ENV=production node .",
     "dev": "NODE_ENV=development ts-node -r tsconfig-paths/register -r dotenv-expand server.ts",
-    "migrate:create": "node-pg-migrate --migrations-dir ./database/migrations --migration-file-language sql create",
+    "migrate:create": "node-pg-migrate --migrations-dir ./migrations --migration-file-language sql create",
     "migrate:up": "node-pg-migrate -r dotenv-expand --migrations-dir ./migrations --migration-file-language sql up",
     "dev:migrate:up": "node-pg-migrate -r dotenv-expand --migrations-dir ./migrations --database-url-var DATABASE_DEV_URL --migration-file-language sql up",
     "migrate:down": "node-pg-migrate -r dotenv-expand --migrations-dir ./migrations --migration-file-language sql down",

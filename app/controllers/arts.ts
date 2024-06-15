@@ -1,5 +1,3 @@
-// app/controllers/arts.ts
-
 import type { PayloadType } from 'morkato/controller'
 import type { Controller } from 'morkato/controller'
 import type { LoggerContext } from 'morkato/app'

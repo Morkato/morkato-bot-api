@@ -136,3 +136,5 @@ spec
 test.ts
 id.ts
 .ignore/
+jest.*
+tests/*

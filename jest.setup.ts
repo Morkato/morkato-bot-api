@@ -1,53 +1,40 @@
+import type { MorkatoAPP } from './morkato/app'
+import { getAPP } from './server'
+import migrate from 'node-pg-migrate'
 import 'dotenv-expand/config'
 
-import type { Database } from './models/database'
-
-import { prepareDatabase } from './models/database'
-import runMigrations from 'node-pg-migrate'
-import { Client } from 'pg'
-
-const databaseTestsName = "morkato-jest-tests"
-
-let client: Client | undefined
-export declare namespace global {
-  let database: Database
+const ambient = "tests"
+const port = 9900
+const APIURL = "http://localhost:" + port
+let runningAPP: MorkatoAPP | undefined
+declare global {
+  export function getRunningAPP(): MorkatoAPP
+  export const APIURL: string
 }
 
+global.getRunningAPP =
+function getRunningAPP() {
+  if (runningAPP === undefined) {
+    throw new Error("APP not running.");
+  }
+  return runningAPP;
+};
+
+(global as any).APIURL = APIURL
 
 beforeAll(async () => {
   jest.setTimeout(25 * 1000)
-
-  const pg = new Client({
-    connectionString: process.env.DATABASE_URL
-  })
-
-  await pg.connect()
-  await pg.query(`DROP DATABASE IF EXISTS "${databaseTestsName}";`)
-  await pg.query(`CREATE DATABASE "${databaseTestsName}";`)
-  await pg.end()
-
-  client = new Client({
-    user: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD,
-    host: process.env.POSTGRES_HOST,
-    port: Number(process.env.POSTGRES_PORT),
-    database: databaseTestsName
-  })
-
-  await client.connect()
-  await runMigrations({
-    dbClient: client,
-    direction: 'up',
-    dir: "./database/migrations",
-    migrationsTable: "pgmigrations"
-  })
-
-  const database = prepareDatabase({} as any, client)
-  global.database = database
+  const app: MorkatoAPP = await getAPP(ambient)
+  app.logger.ambient(ambient, new Set())
+  app.databaseAmbient(ambient, "morkato-jest-tests")
+  await app.start(9900)
+  runningAPP = app
 })
 
 afterAll(async () => {
-  if (client) {
-    await client.end()
+  if (runningAPP) {
+    await runningAPP.disconnectDatabase()
+    runningAPP.closeAPI()
+    runningAPP = undefined
   }
 })
