@@ -1,15 +1,11 @@
-import type { MorkatoAPP } from 'morkato/app'
+import type { ConnectionContext } from 'models/database'
 import type { GuildDatabase } from '.'
-import type { Client } from 'pg'
 
 import { GuildNotFoundError, InternalServerError } from 'errors'
 import { guildDeleteQueryBuilder } from 'models/queries/guilds'
 import { formatGuild } from './formatters'
 
-const locationCode = "models/guilds"
-
-export function delGuild(app: MorkatoAPP, pg: Client): GuildDatabase['delGuild'] {
-  const logger = app.getLoggerContext(locationCode)
+export function delGuild({logger, locationCode, pg, dispatch}: ConnectionContext): GuildDatabase['delGuild'] {
   return async ({ id }) => {
     const values: unknown[] = []
     const where = {
@@ -32,6 +28,8 @@ export function delGuild(app: MorkatoAPP, pg: Client): GuildDatabase['delGuild']
       });
     }
 
-    return formatGuild(rows[0]);
+    const guild = formatGuild(rows[0])
+    dispatch("guild.delete", guild)
+    return guild;
   }
 }

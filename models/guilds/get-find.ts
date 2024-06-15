@@ -1,15 +1,11 @@
-import type { MorkatoAPP } from 'morkato/app'
+import type { ConnectionContext } from 'models/database'
 import type { GuildDatabase } from '.'
-import type { Client } from 'pg'
 
-import { GuildNotFoundError, InternalServerError } from 'errors'
 import { guildQueryBuilder } from 'models/queries/guilds'
+import { InternalServerError } from 'errors'
 import { formatGuild } from './formatters'
 
-const locationCode = "models/guilds"
-
-export function getGuild(app: MorkatoAPP, pg: Client): GuildDatabase['getGuild'] {
-  const logger = app.getLoggerContext(locationCode)
+export function getGuild({logger, models, locationCode, pg}: ConnectionContext): GuildDatabase['getGuild'] {
   return async ({ id }) => {
     const values: unknown[] = []
     const where = {
@@ -17,12 +13,12 @@ export function getGuild(app: MorkatoAPP, pg: Client): GuildDatabase['getGuild']
     }
 
     const query = guildQueryBuilder.sql(where, values)
-    logger.debug("SQL QUERY: %s with values: %s", query, where)
+    logger.debug("SQL QUERY: %s with values: %s", query, values)
     const {rows, rowCount} = await pg.query(query, values)
     logger.debug("RESULT GET QUERY: %s where: %s", rows, where)
 
     if (!rowCount || rowCount === 0) {
-      return await app.database.createGuild({ id });
+      return await models.createAnonymousGuild({ id });
     } else if (rowCount > 1) {
       throw new InternalServerError({
         errorLocationCode: locationCode

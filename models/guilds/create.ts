@@ -1,6 +1,5 @@
-import type { MorkatoAPP } from 'morkato/app'
+import type { ConnectionContext } from 'models/database'
 import type { GuildDatabase } from '.'
-import type { Client } from 'pg'
 
 import { GuildAlreadyExistsError, InternalServerError } from 'errors'
 import { guildInsertQueryBuilder } from 'models/queries/guilds'
@@ -18,8 +17,22 @@ export function assertGuildCreateError(err: DatabaseError, guild_id: string) {
   }
 }
 
-export function createGuild(app: MorkatoAPP, pg: Client): GuildDatabase['createGuild'] {
-  const logger = app.getLoggerContext(locationCode)
+export function createAnonymousGuild(ctx: ConnectionContext): GuildDatabase['createAnonymousGuild'] {
+  return ({ id }) => {
+    return Promise.resolve({
+      id: id,
+      default_player_life: 100,
+      default_player_breath: 500,
+      default_player_blood: 500,
+      default_player_force: 0,
+      default_player_resistance: 0,
+      default_player_velocity: 1,
+      arts: []
+    });
+  }
+}
+
+export function createGuild({logger, locationCode, pg, dispatch}: ConnectionContext): GuildDatabase['createGuild'] {
   return async ({ id, default_player_life, default_player_breath, default_player_blood, default_player_force, default_player_resistance, default_player_velocity }) => {
     const values: unknown[] = []
     const payload = {
@@ -38,7 +51,7 @@ export function createGuild(app: MorkatoAPP, pg: Client): GuildDatabase['createG
       const {rows} = await pg.query(query, values)
       logger.debug("RESULT CREATE QUERY: %s with payload: %s", rows, payload)
       const guild = formatGuild(rows[0])
-      app.notify("guild.create", guild)
+      dispatch("guild.create", guild)
       return guild;
     } catch (err) {
       if (err instanceof DatabaseError) {

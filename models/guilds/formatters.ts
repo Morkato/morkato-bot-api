@@ -8,7 +8,7 @@ export function formatGuildArt(payload: any): Omit<Art, 'guild_id'> {
     type: payload.type,
     description: payload.description,
     banner: payload.banner,
-    updated_at: payload.updated_at === null ? null : payload.updated_at.getTime(),
+    updated_at: payload.updated_at === null ? null : new Date(payload.updated_at).getTime(),
     attacks: !payload.attacks ? [] : payload.attacks
   }
 }
