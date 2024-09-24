@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  morkato-api-database:
+    image: postgres:alpine
+    restart: always
+    container_name: morkato-api-database
+    environment:
+      POSTGRES_DB: morkato
+      POSTGRES_USER: morkato
+      POSTGRES_PASSWORD: morkato
+    ports:
+      - 8080:5432
+    volumes:
+      - morkato-database:/var/lib/postgresql
+volumes:
+  morkato-database:
