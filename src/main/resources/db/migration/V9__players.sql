@@ -3,7 +3,10 @@ CREATE TABLE "players" (
   "guild_id" discord_id_type NOT NULL,
   "npc_id" id_type DEFAULT NULL,
   "ability_roll" uint_type NOT NULL,
-  "family_roll" uint_type NOT NULL
+  "family_roll" uint_type NOT NULL,
+  "is_prodigy" BOOLEAN NOT NULL DEFAULT FALSE,
+  "has_mark" BOOLEAN NOT NULL DEFAULT FALSE,
+  "expected_npc_kind" npc_type NOT NULL
 );
 
 ALTER TABLE "players"
@@ -21,7 +24,9 @@ ALTER TABLE "npcs"
   ADD COLUMN "player_id" discord_id_type
     DEFAULT NULL;
 ALTER TABLE "npcs"
-  ADD CONSTRAINT "npc.player" FOREIGN KEY ("guild_id","player_id") REFERENCES "players"("guild_id","id");
+  ADD CONSTRAINT "npc.player" FOREIGN KEY ("guild_id","player_id") REFERENCES "players"("guild_id","id")
+  ON DELETE CASCADE
+  ON UPDATE RESTRICT;
 
 CREATE FUNCTION sync_player_npc() RETURNS TRIGGER AS $$
 BEGIN

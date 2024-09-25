@@ -31,12 +31,6 @@ CREATE TABLE "abilities_families" (
   "guild_id" discord_id_type NOT NULL
 );
 
-CREATE TABLE "npcs_abilities" (
-  "ability_id" id_type NOT NULL,
-  "npc_id" id_type NOT NULL,
-  "guild_id" discord_id_type NOT NULL
-);
-
 ALTER TABLE "families"
   ADD CONSTRAINT "family.pkey" PRIMARY KEY ("guild_id","id");
 ALTER TABLE "families"
@@ -74,14 +68,6 @@ ALTER TABLE "npcs_abilities"
   ON UPDATE RESTRICT;
 ALTER TABLE "npcs_abilities"
   ADD CONSTRAINT "npc_ability.family" FOREIGN KEY ("guild_id","npc_id") REFERENCES "npcs"("guild_id","id")
-  ON DELETE RESTRICT
-  ON UPDATE RESTRICT;
-
--- NPC NEW FEATURES:
-ALTER TABLE "npcs"
-  ADD COLUMN "family_id" id_type;
-ALTER TABLE "npcs"
-  ADD CONSTRAINT "npc.family" FOREIGN KEY ("guild_id","family_id") REFERENCES "families"("guild_id","id")
   ON DELETE RESTRICT
   ON UPDATE RESTRICT;
 
