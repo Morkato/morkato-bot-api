@@ -16,7 +16,6 @@ import morkato.api.database.attack.Attack
 import morkato.api.database.guild.Guild
 import morkato.api.database.art.Art
 
-import org.jetbrains.exposed.sql.transactions.transaction
 import morkato.api.response.data.AttackResponseData
 import morkato.api.validation.IdSchema
 import jakarta.validation.Valid
@@ -29,7 +28,8 @@ class AttackController {
   fun getAllByGuildId(
     @PathVariable("guild_id") @IdSchema guild_id: String
   ) : List<AttackResponseData> {
-    return Attack.findAllByGuildId(guild_id)
+    val guild = Guild.getReference(guild_id)
+    return guild.getAllAttacks()
       .map(AttackResponseData::from)
   }
   @GetMapping("/{id}")
@@ -38,7 +38,8 @@ class AttackController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @PathVariable("id") @IdSchema id: String
   ) : AttackResponseData {
-    val attack = Attack.getReference(guild_id, id.toLong())
+    val guild = Guild.getReference(guild_id)
+    val attack = guild.getAttack(id.toLong())
     return AttackResponseData.from(attack)
   }
   @PostMapping("/{art_id}")
@@ -49,8 +50,8 @@ class AttackController {
     @RequestBody @Valid data: AttackCreateData
   ) : AttackResponseData {
     val guild = Guild.getReference(guild_id)
-    val art = Art.getReference(guild.id, art_id.toLong())
-    val attack = Attack.create(data, art)
+    val art = guild.getArt(art_id.toLong())
+    val attack = art.createAttack(data)
     return AttackResponseData.from(attack)
   }
   @PutMapping("/{id}")
@@ -60,7 +61,8 @@ class AttackController {
     @PathVariable("id") @IdSchema id: String,
     @RequestBody @Valid data: AttackUpdateData
   ) : AttackResponseData {
-    val attack = Attack.getReference(guild_id, id.toLong())
+    val guild = Guild.getReference(guild_id)
+    val attack = guild.getAttack(id.toLong())
     return AttackResponseData.from(attack.update(data))
   }
   @DeleteMapping("/{id}")
@@ -69,7 +71,8 @@ class AttackController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @PathVariable("id") @IdSchema id: String
   ) : AttackResponseData {
-    val attack = Attack.getReference(guild_id, id.toLong())
+    val guild = Guild.getReference(guild_id)
+    val attack = guild.getAttack(id.toLong())
     return AttackResponseData.from(attack.delete())
   }
 }
