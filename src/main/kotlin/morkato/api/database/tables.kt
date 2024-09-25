@@ -2,6 +2,7 @@ package morkato.api.database
 
 import morkato.api.database.ability.AbilityType
 import morkato.api.database.art.ArtType
+import morkato.api.database.guild.Guild
 import org.jetbrains.exposed.sql.Table
 
 object tables {
@@ -57,6 +58,17 @@ object tables {
     val percent = integer("percent")
     val npc_kind = integer("npc_kind")
     val immutable = bool("immutable")
+    val description = varchar("description", length = 2048).nullable()
+    val banner = text("banner").nullable()
+
+    override val primaryKey = PrimaryKey(guild_id, id)
+  }
+
+  object families : Table("families") {
+    val guild_id = reference("guild_id", Guild.Companion.guilds.id)
+    val id = long("id").autoIncrement()
+
+    val name = varchar("name", length = 32)
     val description = varchar("description", length = 2048).nullable()
     val banner = text("banner").nullable()
 
