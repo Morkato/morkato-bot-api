@@ -1,7 +1,6 @@
 package morkato.api.database
 
-import morkato.api.database.art.Art.Companion.arts.autoIncrement
-import morkato.api.database.art.Art.Companion.arts.nullable
+import morkato.api.database.ability.AbilityType
 import morkato.api.database.art.ArtType
 import org.jetbrains.exposed.sql.Table
 
@@ -37,7 +36,7 @@ object tables {
     val id = long("id").autoIncrement()
 
     val name = varchar("name", length = 30)
-    val art_id = long("art_id")
+    val art_id = reference("art_id", arts.id)
     val name_prefix_art = varchar("name_prefix_art", length = 32).nullable()
     val description = varchar("description", length = 2048).nullable()
     val banner = text("banner").nullable()
@@ -45,6 +44,21 @@ object tables {
     val breath = long("breath")
     val blood = long("blood")
     val intents = integer("intents")
+
+    override val primaryKey = PrimaryKey(guild_id, id)
+  }
+
+  object abilities : Table("abilities") {
+    val guild_id = reference("guild_id", guilds.id)
+    val id = long("id").autoIncrement()
+
+    val name = varchar("name", 32)
+    val type = enumerationByName<AbilityType>("type", 30, klass = AbilityType::class)
+    val percent = integer("percent")
+    val npc_kind = integer("npc_kind")
+    val immutable = bool("immutable")
+    val description = varchar("description", length = 2048).nullable()
+    val banner = text("banner").nullable()
 
     override val primaryKey = PrimaryKey(guild_id, id)
   }
