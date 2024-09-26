@@ -2,7 +2,6 @@ package morkato.api.database
 
 import morkato.api.database.ability.AbilityType
 import morkato.api.database.art.ArtType
-import morkato.api.database.guild.Guild
 import org.jetbrains.exposed.sql.Table
 
 object tables {
@@ -65,7 +64,7 @@ object tables {
   }
 
   object families : Table("families") {
-    val guild_id = reference("guild_id", Guild.Companion.guilds.id)
+    val guild_id = reference("guild_id", guilds.id)
     val id = long("id").autoIncrement()
 
     val name = varchar("name", length = 32)
@@ -73,5 +72,13 @@ object tables {
     val banner = text("banner").nullable()
 
     override val primaryKey = PrimaryKey(guild_id, id)
+  }
+
+  object abilities_families : Table("abilities_families") {
+    val guild_id = reference("guild_id", guilds.id)
+    val ability_id = reference("ability_id", abilities.id)
+    val family_id = reference("family_id", families.id)
+
+    override val primaryKey = PrimaryKey(guild_id, ability_id, family_id)
   }
 }
