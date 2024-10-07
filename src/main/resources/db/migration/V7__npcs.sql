@@ -2,9 +2,6 @@
 -- "surname" COLUMN IN TABLE "npcs" THE TYPE WILL BE REPLACED BY NEW DOMAIN "surname_type" (AVAILABLE IN VERSION 7.0).
 -- "guild_id" COLUMN IN TABLE "npcs" WILL BE ADDED (AVAILABLE IN VERSION 7.0).
 CREATE SEQUENCE "npc_snowflake_seq";
-CREATE DOMAIN npc_type AS TEXT CHECK (VALUE ~ 'HUMAN|ONI|HYBRID');
-CREATE DOMAIN energy_type AS INTEGER CHECK (VALUE >= 0 AND VALUE <= 100);
-CREATE DOMAIN surname_type AS key_type CHECK (VALUE <> 'self' AND VALUE <> 'this');
 CREATE TABLE "npcs" (
   "name" name_type NOT NULL,
   "type" npc_type NOT NULL,
@@ -13,6 +10,8 @@ CREATE TABLE "npcs" (
   "family_id" id_type NOT NULL,
   "id" id_type NOT NULL DEFAULT snowflake_id('npc_snowflake_seq'),
   "energy" energy_type NOT NULL DEFAULT 100,
+  "mark" BOOLEAN DEFAULT FALSE,
+  "prodigy" BOOLEAN DEFAULT FALSE,
   "max_life" attr_type NOT NULL DEFAULT 0,
   "max_breath" attr_type NOT NULL DEFAULT 0,
   "max_blood" attr_type NOT NULL DEFAULT 0,

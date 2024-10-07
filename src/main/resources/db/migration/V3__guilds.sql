@@ -5,8 +5,10 @@ CREATE TABLE "guilds" (
   "hybrid_initial_life" attr_type NOT NULL DEFAULT 1500,
   "breath_initial" attr_type NOT NULL DEFAULT 500,
   "blood_initial" attr_type NOT NULL DEFAULT 1000,
-  "family_roll" attr_type NOT NULL DEFAULT 3,
-  "ability_roll" attr_type NOT NULL DEFAULT 3
+  "family_roll" uint_type NOT NULL DEFAULT 3,
+  "ability_roll" uint_type NOT NULL DEFAULT 3,
+  "roll_category_id" discord_id_type DEFAULT NULL,
+  "off_category_id" discord_id_type DEFAULT NULL
 );
 ALTER TABLE "guilds"
   ADD CONSTRAINT "guild.pkey" PRIMARY KEY ("id");
