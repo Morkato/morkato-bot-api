@@ -1,10 +1,10 @@
-package morkato.api.models.npc;
+package morkato.api.model.npc;
 
 import jakarta.validation.constraints.NotNull;
-import morkato.api.infra.validation.BannerSchema
-import morkato.api.infra.validation.IdSchema
-import morkato.api.infra.validation.KeySchema
-import morkato.api.infra.validation.NameSchema
+import morkato.api.dto.validation.BannerSchema
+import morkato.api.dto.validation.IdSchema
+import morkato.api.dto.validation.KeySchema
+import morkato.api.dto.validation.NameSchema
 
 data class NpcCreateData(
   @NotNull @NameSchema val name: String,

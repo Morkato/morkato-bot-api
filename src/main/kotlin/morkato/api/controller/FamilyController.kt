@@ -15,31 +15,37 @@ import morkato.api.response.data.FamilyAbilityResponseData
 import morkato.api.response.data.FamilyResponseData
 import morkato.api.database.family.FamilyCreateData
 import morkato.api.database.family.FamilyUpdateData
-import morkato.api.response.data.AbilityResponseData
-import morkato.api.database.ability.AbilityFamily
-import morkato.api.database.ability.Ability
+import morkato.api.database.foreign.AbilityFamily
 import morkato.api.database.family.Family
 import morkato.api.database.guild.Guild
-import morkato.api.validation.IdSchema
+import morkato.api.dto.validation.IdSchema
 
 @RestController
 @RequestMapping("/families/{guild_id}")
-class FamilyController  {
+class FamilyController {
+  companion object {
+    fun filterAbilitiesWithFamily(family: Family, abilities: Sequence<AbilityFamily>) : Sequence<AbilityFamily> {
+      return abilities
+        .filter {
+          return@filter it.familyId == family.payload.id
+        }
+    }
+  }
   @GetMapping
   @Transactional
   fun getAllByGuildId(
     @PathVariable("guild_id") @IdSchema guild_id: String
   ) : List<FamilyResponseData> {
-    val families = Family.findAllByGuildId(guild_id)
-    val abilities = AbilityFamily.findAllByGuildId(guild_id)
+    val guild = Guild.getRefOrCreate(guild_id)
+    val families = guild.getAllFamilies()
+    val abilities = guild.getAllRelationAbilitiesFamilies()
     return families
-      .map { family ->
-        val familyAbilities = abilities
-          .asSequence()
-          .filter { ability -> ability.family_id == family.id }
-          .map(AbilityResponseData::from)
+      .map {
+        val filteredAbilities = filterAbilitiesWithFamily(it, abilities.asSequence())
+          .map(AbilityFamily::abilityId)
+          .map(Long::toString)
           .toList()
-        FamilyResponseData.from(family, familyAbilities)
+        return@map FamilyResponseData.from(it, filteredAbilities)
       }
   }
   @PostMapping
@@ -49,8 +55,8 @@ class FamilyController  {
     @RequestBody @Valid data: FamilyCreateData
   ) : FamilyResponseData {
     val guild = Guild.getRefOrCreate(guild_id)
-    val family = Family.create(data, guild)
-    return FamilyResponseData.from(family, listOf<AbilityResponseData>())
+    val family = guild.createFamily(data)
+    return FamilyResponseData.from(family, listOf<String>())
   }
   @GetMapping("/{id}")
   @Transactional
@@ -58,11 +64,14 @@ class FamilyController  {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @PathVariable("id") @IdSchema id: String
   ) : FamilyResponseData {
-    val family = Family.getReference(guild_id, id.toLong())
-    val abilities = AbilityFamily.findAllByGuildIdAndFamilyId(guild_id, id.toLong())
-    return FamilyResponseData.from(family, abilities
-      .map(AbilityResponseData::from)
-    )
+    val guild = Guild.getRefOrCreate(guild_id)
+    val family = guild.getFamily(id.toLong())
+    val abilities = family.getAllAbilities()
+      .asSequence()
+      .map(AbilityFamily::abilityId)
+      .map(Long::toString)
+      .toList()
+    return FamilyResponseData.from(family, abilities)
   }
   @PutMapping("/{id}")
   @Transactional
@@ -71,12 +80,15 @@ class FamilyController  {
     @PathVariable("id") @IdSchema id: String,
     @RequestBody @Valid data: FamilyUpdateData
   ) : FamilyResponseData {
-    val before = Family.getReference(guild_id, id.toLong())
-    val abilities = AbilityFamily.findAllByGuildIdAndFamilyId(guild_id, before.id)
+    val guild = Guild.getRefOrCreate(guild_id)
+    val before = guild.getFamily(id.toLong())
     val family = before.update(data)
-    return FamilyResponseData.from(family, abilities
-      .map(AbilityResponseData::from)
-    )
+    val abilities = family.getAllAbilities()
+      .asSequence()
+      .map(AbilityFamily::abilityId)
+      .map(Long::toString)
+      .toList()
+    return FamilyResponseData.from(family, abilities)
   }
   @DeleteMapping("/{id}")
   @Transactional
@@ -84,11 +96,14 @@ class FamilyController  {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @PathVariable("id") @IdSchema id: String
   ) : FamilyResponseData {
-    val family = Family.getReference(guild_id, id.toLong())
-    val abilities = AbilityFamily.findAllByGuildIdAndFamilyId(guild_id, family.id)
-    return FamilyResponseData.from(family.delete(), abilities
-      .map(AbilityResponseData::from)
-    )
+    val guild = Guild.getRefOrCreate(guild_id)
+    val family = guild.getFamily(id.toLong())
+    val abilities = family.getAllAbilities()
+      .asSequence()
+      .map(AbilityFamily::abilityId)
+      .map(Long::toString)
+      .toList()
+    return FamilyResponseData.from(family.delete(), abilities)
   }
   @PostMapping("/{id}/abilities/{ability_id}")
   @Transactional
@@ -97,10 +112,10 @@ class FamilyController  {
     @PathVariable("id") @IdSchema id: String,
     @PathVariable("ability_id") @IdSchema ability_id: String
   ) : FamilyAbilityResponseData {
-    val family = Family.getReference(guild_id, id.toLong())
-    val ability = Ability.getReference(guild_id, ability_id.toLong())
-    AbilityFamily.create(family, ability)
-    return FamilyAbilityResponseData.from(family, ability)
+    val guild = Guild.getRefOrCreate(guild_id)
+    val family = guild.getFamily(id.toLong())
+    val result = family.addAbility(ability_id.toLong())
+    return FamilyAbilityResponseData.from(result)
   }
   @DeleteMapping("/{id}/abilities/{ability_id}")
   @Transactional
@@ -109,10 +124,9 @@ class FamilyController  {
     @PathVariable("id") @IdSchema id: String,
     @PathVariable("ability_id") @IdSchema ability_id: String
   ) : FamilyAbilityResponseData {
-    val family = Family.getReference(guild_id, id.toLong())
-    val ability = Ability.getReference(guild_id, ability_id.toLong())
-    val ref = AbilityFamily.getReference(family, ability)
-    ref.drop()
-    return FamilyAbilityResponseData.from(family, ability)
+    val guild = Guild.getRefOrCreate(guild_id)
+    val family = guild.getFamily(id.toLong())
+    val result = family.dropAbility(ability_id.toLong())
+    return FamilyAbilityResponseData.from(result)
   }
 }

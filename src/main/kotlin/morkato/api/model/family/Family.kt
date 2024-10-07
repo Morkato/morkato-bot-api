@@ -1,4 +1,4 @@
-package morkato.api.models.family
+package morkato.api.model.family
 
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import morkato.api.database.foreign.AbilityFamily

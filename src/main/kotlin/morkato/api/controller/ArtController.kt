@@ -10,14 +10,16 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.GetMapping
 
-import morkato.api.response.data.AttackArtResponseData
-import morkato.api.response.data.ArtResponseData
+import morkato.api.exception.model.ArtNotFoundError
+import morkato.api.exception.model.GuildNotFoundError
+import morkato.api.dto.validation.IdSchema
+import morkato.api.dto.art.ArtAttackResponseData
+import morkato.api.dto.art.ArtResponseData
+import morkato.api.dto.art.ArtCreateData
+import morkato.api.dto.art.ArtUpdateData
+import morkato.api.infra.repository.GuildRepository
+import morkato.api.model.guild.Guild
 
-import morkato.api.database.art.ArtUpdateData
-import morkato.api.database.art.ArtCreateData
-import morkato.api.database.guild.Guild
-
-import morkato.api.validation.IdSchema
 import jakarta.validation.Valid
 
 @RestController
@@ -28,20 +30,19 @@ class ArtController {
   fun findAllByGuildId(
     @PathVariable("guild_id") @IdSchema guild_id: String
   ) : List<ArtResponseData> {
-    val guild = Guild.getReference(guild_id)
-    val arts = guild.getAllArts()
-    val attacks = if (arts.isNotEmpty()) guild.getAllAttacks() else listOf()
-    return arts
-      .asSequence()
-      .map { art ->
-        val artAttacks = attacks
-          .asSequence()
-          .filter { it.payload.artId == art.payload.id }
-          .map(AttackArtResponseData::from)
-          .toList()
-        return@map ArtResponseData.from(art, artAttacks)
-      }
-      .toList()
+    return try {
+      val guild = Guild(GuildRepository.findById(guild_id))
+      val attacks = guild.getAllAttacks().toMutableList()
+      guild.getAllArts()
+        .map { art ->
+          val (valid, invalid) = attacks.partition { art.id == it.artId }
+          attacks.clear()
+          attacks.addAll(invalid)
+          ArtResponseData(art, valid.map(::ArtAttackResponseData))
+        }.toList()
+    } catch (exc: GuildNotFoundError) {
+      return listOf()
+    }
   }
   @PostMapping
   @Transactional
@@ -49,9 +50,14 @@ class ArtController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @RequestBody @Valid data: ArtCreateData
   ) : ArtResponseData {
-    val guild = Guild.getRefOrCreate(guild_id)
-    val art = guild.createArt(data)
-    return ArtResponseData.from(art, listOf<AttackArtResponseData>())
+    val guild = Guild(GuildRepository.findById(guild_id))
+    val art = guild.createArt(
+      name = data.name,
+      type = data.type,
+      description = data.description,
+      banner = data.banner
+    )
+    return ArtResponseData(art, listOf())
   }
   @GetMapping("/{id}")
   @Transactional
@@ -59,10 +65,17 @@ class ArtController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @PathVariable("id") @IdSchema id: String
   ) : ArtResponseData {
-    val guild = Guild.getReference(guild_id)
-    val art = guild.getArt(id.toLong())
-    val attacks = art.getAllAttacks()
-    return ArtResponseData.from(art, attacks.map(AttackArtResponseData::from))
+    return try {
+      val guild = Guild(GuildRepository.findById(guild_id))
+      val art = guild.getArt(id.toLong())
+      val attacks = art.getAllAttacks()
+      ArtResponseData(art, attacks.map(::ArtAttackResponseData).toList())
+    } catch (exc: GuildNotFoundError) {
+      val extra: MutableMap<String, Any?> = mutableMapOf()
+      extra["guild_id"] = guild_id
+      extra["id"] = id
+      throw ArtNotFoundError(extra)
+    }
   }
   @PutMapping("/{id}")
   @Transactional
@@ -71,11 +84,23 @@ class ArtController {
     @PathVariable("id") @IdSchema id: String,
     @RequestBody @Valid data: ArtUpdateData
   ) : ArtResponseData {
-    val guild = Guild.getReference(guild_id)
-    val art = guild.getArt(id.toLong())
-    val after = art.update(data)
-    val attacks = after.getAllAttacks()
-    return ArtResponseData.from(after, attacks.map(AttackArtResponseData::from))
+    return try {
+      val guild = Guild(GuildRepository.findById(guild_id))
+      val before = guild.getArt(id.toLong())
+      val art = before.update(
+        name = data.name,
+        type = data.type,
+        description = data.description,
+        banner = data.banner
+      )
+      val attacks = art.getAllAttacks()
+      ArtResponseData(art, attacks.map(::ArtAttackResponseData).toList())
+    } catch (exc: GuildNotFoundError) {
+      val extra: MutableMap<String, Any?> = mutableMapOf()
+      extra["guild_id"] = guild_id
+      extra["id"] = id
+      throw ArtNotFoundError(extra)
+    }
   }
   @DeleteMapping("/{id}")
   @Transactional
@@ -83,9 +108,16 @@ class ArtController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @PathVariable("id") @IdSchema id: String
   ) : ArtResponseData {
-    val guild = Guild.getReference(guild_id)
-    val art = guild.getArt(id.toLong())
-    val attacks = art.getAllAttacks()
-    return ArtResponseData.from(art.delete(), attacks.map(AttackArtResponseData::from))
+    return try {
+      val guild = Guild(GuildRepository.findById(guild_id))
+      val art = guild.getArt(id.toLong())
+      val attacks = art.getAllAttacks()
+      ArtResponseData(art.delete(), attacks.map(::ArtAttackResponseData).toList())
+    } catch (exc: GuildNotFoundError) {
+      val extra: MutableMap<String, Any?> = mutableMapOf()
+      extra["guild_id"] = guild_id
+      extra["id"] = id
+      throw ArtNotFoundError(extra)
+    }
   }
 }

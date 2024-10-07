@@ -17,20 +17,23 @@ data class NpcResponseData(
   val current_life: Long,
   val current_breath: Long,
   val current_blood: Long,
-  val icon: String?
+  val icon: String?,
+  val abilities: List<String>
 ) {
   companion object {
-    fun from(npc: Npc) : NpcResponseData {
+    fun from(npc: Npc, abilities: List<String>) : NpcResponseData {
+      val payload = npc.payload
       return NpcResponseData(
-        npc.guild_id, npc.id.toString(),
-        npc.name,
-        npc.type,
-        npc.family_id?.toString(),
-        npc.surname,
-        npc.energy,
-        npc.max_life, npc.max_breath, npc.max_blood,
-        npc.current_life, npc.current_breath, npc.current_blood,
-        npc.icon
+        npc.guild.id, payload.id.toString(),
+        payload.name,
+        payload.type,
+        payload.familyId.toString(),
+        payload.surname,
+        payload.energy,
+        payload.maxLife, payload.maxBreath, payload.maxBlood,
+        payload.currentLife, payload.currentBreath, payload.currentBlood,
+        payload.icon,
+        abilities
       )
     }
   }

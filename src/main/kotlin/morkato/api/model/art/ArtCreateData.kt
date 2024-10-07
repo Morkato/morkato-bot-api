@@ -1,4 +1,4 @@
-package morkato.api.models.art
+package morkato.api.model.art
 
 import jakarta.validation.constraints.NotNull;
 

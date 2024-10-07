@@ -10,14 +10,13 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.GetMapping
 
+import morkato.api.database.foreign.AbilityNpc
 import morkato.api.database.npc.NpcUpdateData
 import morkato.api.database.npc.NpcCreateData
 import morkato.api.database.guild.Guild
-import morkato.api.database.npc.Npc
 
-import org.jetbrains.exposed.sql.transactions.transaction
 import morkato.api.response.data.NpcResponseData
-import morkato.api.validation.IdSchema
+import morkato.api.dto.validation.IdSchema
 import jakarta.validation.Valid
 
 @RestController
@@ -29,12 +28,16 @@ class NpcController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @PathVariable("id") id: String
   ) : NpcResponseData {
-    if ("^[0-9]{15,30}$".toRegex().containsMatchIn(id)) {
-      val npc = Npc.getReference(guild_id, id.toLong())
-      return NpcResponseData.from(npc)
-    }
-    val npc = Npc.getReferenceBySurname(guild_id, id)
-    return NpcResponseData.from(npc)
+    val guild = Guild.getRefOrCreate(guild_id)
+    val npc = if ("^[0-9]{15,30}$".toRegex().containsMatchIn(id))
+      guild.getNpc(id.toLong())
+    else guild.getNpcBySurname(id)
+    val abilities = npc.getAllAbilities()
+      .asSequence()
+      .map(AbilityNpc::abilityId)
+      .map(Long::toString)
+      .toList()
+    return NpcResponseData.from(npc, abilities)
   }
   @PostMapping
   @Transactional
@@ -43,8 +46,8 @@ class NpcController {
     @RequestBody @Valid data: NpcCreateData
   ) : NpcResponseData {
     val guild = Guild.getRefOrCreate(guild_id)
-    val npc = Npc.create(data, guild)
-    return NpcResponseData.from(npc)
+    val npc = guild.createNpc(data)
+    return NpcResponseData.from(npc, listOf<String>())
   }
   @PutMapping("/{id}")
   @Transactional
@@ -53,8 +56,15 @@ class NpcController {
     @PathVariable("id") @IdSchema id: String,
     @RequestBody @Valid data: NpcUpdateData
   ) : NpcResponseData {
-    val npc = Npc.getReference(guild_id, id.toLong())
-    return NpcResponseData.from(npc.update(data))
+    val guild = Guild.getRefOrCreate(guild_id)
+    val before = guild.getNpc(id.toLong())
+    val npc = before.update(data)
+    val abilities = npc.getAllAbilities()
+      .asSequence()
+      .map(AbilityNpc::abilityId)
+      .map(Long::toString)
+      .toList()
+    return NpcResponseData.from(npc, abilities)
   }
   @DeleteMapping("/{id}")
   @Transactional
@@ -62,7 +72,14 @@ class NpcController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @PathVariable("id") @IdSchema id: String,
   ) : NpcResponseData {
-    val npc = Npc.getReference(guild_id, id.toLong())
-    return NpcResponseData.from(npc.delete())
+    val guild = Guild.getRefOrCreate(guild_id)
+    val npc = guild.getNpc(id.toLong())
+    val abilities = npc.getAllAbilities()
+      .asSequence()
+      .map(AbilityNpc::abilityId)
+      .map(Long::toString)
+      .toList()
+    npc.delete()
+    return NpcResponseData.from(npc, abilities)
   }
 }

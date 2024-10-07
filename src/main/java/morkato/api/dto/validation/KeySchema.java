@@ -1,4 +1,4 @@
-package morkato.api.infra.validation;
+package morkato.api.dto.validation;
 
 import org.hibernate.validator.constraints.Length;
 import jakarta.validation.constraints.Pattern;

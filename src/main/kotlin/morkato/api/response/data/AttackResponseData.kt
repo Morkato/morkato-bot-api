@@ -18,18 +18,18 @@ data class AttackResponseData(
 ) {
   companion object {
     fun from(attack: Attack) : AttackResponseData {
+      val payload = attack.payload
       return AttackResponseData(
-        attack.guildId,
-        attack.id.toString(),
-        attack.name,
-        attack.artId.toString(),
-        attack.namePrefixArt,
-        attack.description,
-        attack.banner,
-        attack.damage,
-        attack.breath,
-        attack.blood,
-        attack.intents
+        attack.guild.id, payload.id.toString(),
+        payload.name,
+        payload.artId.toString(),
+        payload.namePrefixArt,
+        payload.description,
+        payload.banner,
+        payload.damage,
+        payload.breath,
+        payload.blood,
+        payload.intents
       )
     }
   }

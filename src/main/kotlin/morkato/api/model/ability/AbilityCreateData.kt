@@ -1,9 +1,9 @@
-package morkato.api.models.ability
+package morkato.api.model.ability
 
 import jakarta.validation.constraints.NotNull
-import morkato.api.infra.validation.NameSchema
-import morkato.api.infra.validation.DescriptionSchema
-import morkato.api.infra.validation.BannerSchema
+import morkato.api.dto.validation.NameSchema
+import morkato.api.dto.validation.DescriptionSchema
+import morkato.api.dto.validation.BannerSchema
 
 data class AbilityCreateData(
   @NameSchema @NotNull val name: String,

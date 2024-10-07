@@ -1,4 +1,4 @@
-package morkato.api.models.art
+package morkato.api.model.art
 
 data class ArtPayload(
   val guildId: String,

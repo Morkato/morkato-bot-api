@@ -10,14 +10,15 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.GetMapping
 
-import morkato.api.database.attack.AttackUpdateData
-import morkato.api.database.attack.AttackCreateData
-import morkato.api.database.attack.Attack
-import morkato.api.database.guild.Guild
-import morkato.api.database.art.Art
-
-import morkato.api.response.data.AttackResponseData
-import morkato.api.validation.IdSchema
+import morkato.api.exception.model.AttackNotFoundError
+import morkato.api.exception.model.GuildNotFoundError
+import morkato.api.exception.model.ArtNotFoundError
+import morkato.api.infra.repository.GuildRepository
+import morkato.api.model.guild.Guild
+import morkato.api.dto.attack.AttackResponseData
+import morkato.api.dto.attack.AttackCreateData
+import morkato.api.dto.attack.AttackUpdateData
+import morkato.api.dto.validation.IdSchema
 import jakarta.validation.Valid
 
 @RestController
@@ -28,9 +29,14 @@ class AttackController {
   fun getAllByGuildId(
     @PathVariable("guild_id") @IdSchema guild_id: String
   ) : List<AttackResponseData> {
-    val guild = Guild.getReference(guild_id)
-    return guild.getAllAttacks()
-      .map(AttackResponseData::from)
+    return try {
+      val guild = Guild(GuildRepository.findById(guild_id))
+      guild.getAllAttacks()
+        .map(::AttackResponseData)
+        .toList()
+    } catch (exc: GuildNotFoundError) {
+      return listOf()
+    }
   }
   @GetMapping("/{id}")
   @Transactional
@@ -38,9 +44,16 @@ class AttackController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @PathVariable("id") @IdSchema id: String
   ) : AttackResponseData {
-    val guild = Guild.getReference(guild_id)
-    val attack = guild.getAttack(id.toLong())
-    return AttackResponseData.from(attack)
+    return try {
+      val guild = Guild(GuildRepository.findById(guild_id))
+      val attack = guild.getAttack(id.toLong())
+      AttackResponseData(attack)
+    } catch (exc: GuildNotFoundError) {
+      val extra: MutableMap<String, Any?> = mutableMapOf()
+      extra["guild_id"] = guild_id
+      extra["id"] = id
+      throw AttackNotFoundError(extra)
+    }
   }
   @PostMapping("/{art_id}")
   @Transactional
@@ -49,10 +62,26 @@ class AttackController {
     @PathVariable("art_id") @IdSchema art_id: String,
     @RequestBody @Valid data: AttackCreateData
   ) : AttackResponseData {
-    val guild = Guild.getReference(guild_id)
-    val art = guild.getArt(art_id.toLong())
-    val attack = art.createAttack(data)
-    return AttackResponseData.from(attack)
+    return try {
+      val guild = Guild(GuildRepository.findById(guild_id))
+      val art = guild.getArt(art_id.toLong())
+      val attack = art.createAttack(
+        name = data.name,
+        namePrefixArt = data.name_prefix_art,
+        description = data.description,
+        banner = data.banner,
+        damage = data.damage,
+        breath = data.breath,
+        blood = data.blood,
+        intents = data.intents
+      )
+      AttackResponseData(attack)
+    } catch (exc: GuildNotFoundError) {
+      val extra: MutableMap<String, Any?> = mutableMapOf()
+      extra["guild_id"] = guild_id
+      extra["id"] = art_id
+      throw ArtNotFoundError(extra)
+    }
   }
   @PutMapping("/{id}")
   @Transactional
@@ -61,9 +90,26 @@ class AttackController {
     @PathVariable("id") @IdSchema id: String,
     @RequestBody @Valid data: AttackUpdateData
   ) : AttackResponseData {
-    val guild = Guild.getReference(guild_id)
-    val attack = guild.getAttack(id.toLong())
-    return AttackResponseData.from(attack.update(data))
+    return try {
+      val guild = Guild(GuildRepository.findById(guild_id))
+      val before = guild.getAttack(id.toLong())
+      val attack = before.update(
+        name = data.name,
+        namePrefixArt = data.name_prefix_art,
+        description = data.description,
+        banner = data.banner,
+        damage = data.damage,
+        breath = data.breath,
+        blood = data.blood,
+        intents = data.intents
+      )
+      AttackResponseData(attack)
+    } catch (exc: GuildNotFoundError) {
+      val extra: MutableMap<String, Any?> = mutableMapOf()
+      extra["guild_id"] = guild_id
+      extra["id"] = id
+      throw AttackNotFoundError(extra)
+    }
   }
   @DeleteMapping("/{id}")
   @Transactional
@@ -71,8 +117,16 @@ class AttackController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @PathVariable("id") @IdSchema id: String
   ) : AttackResponseData {
-    val guild = Guild.getReference(guild_id)
-    val attack = guild.getAttack(id.toLong())
-    return AttackResponseData.from(attack.delete())
+    return try {
+      val guild = Guild(GuildRepository.findById(guild_id))
+      val attack = guild.getAttack(id.toLong())
+      attack.delete()
+      AttackResponseData(attack)
+    } catch (exc: GuildNotFoundError) {
+      val extra: MutableMap<String, Any?> = mutableMapOf()
+      extra["guild_id"] = guild_id
+      extra["id"] = id
+      throw AttackNotFoundError(extra)
+    }
   }
 }

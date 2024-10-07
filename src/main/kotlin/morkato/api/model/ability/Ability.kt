@@ -1,63 +1,68 @@
-package morkato.api.models.ability
+package morkato.api.model.ability
 
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import morkato.api.database.tables.abilities
-import morkato.api.database.guild.Guild
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.*
+import morkato.api.infra.repository.AbilityRepository
+import morkato.api.model.guild.Guild
+
+import org.jetbrains.exposed.sql.ResultRow
 
 class Ability(
   val guild: Guild,
-  val payload: AbilityPayload
+  val id: Long,
+  val name: String,
+  val type: AbilityType,
+  val percent: Int,
+  val npcKind: Int,
+  val immutable: Boolean,
+  val description: String?,
+  val banner: String?
 ) {
-  companion object {
-    fun getPayload(row: ResultRow) : AbilityPayload {
-      return AbilityPayload(
-        row[abilities.guild_id],
-        row[abilities.id],
-        row[abilities.name],
-        row[abilities.type],
-        row[abilities.percent],
-        row[abilities.npc_kind],
-        row[abilities.immutable],
-        row[abilities.description],
-        row[abilities.banner]
-      )
-    }
-  }
+  public constructor(guild: Guild, row: ResultRow) : this(guild, AbilityRepository.AbilityPayload(row)) {}
+  public constructor(guild: Guild, payload: AbilityRepository.AbilityPayload) : this(
+    guild,
+    payload.id,
+    payload.name,
+    payload.type,
+    payload.percent,
+    payload.npcKind,
+    payload.immutable,
+    payload.description,
+    payload.banner
+  ) {}
 
-  fun update(data: AbilityUpdateData) : Ability {
-    abilities.update({
-      (abilities.guild_id eq this@Ability.guild.id)
-        .and(abilities.id eq this@Ability.payload.id)
-    }) {
-      if (data.name != null) {
-        it[abilities.name] = data.name
-      }
-      if (data.type != null) {
-        it[abilities.type] = data.type
-      }
-      if (data.percent != null) {
-        it[abilities.percent] = data.percent
-      }
-      if (data.npc_kind != null) {
-        it[abilities.npc_kind] = data.npc_kind
-      }
-      if (data.description != null) {
-        it[abilities.description] = data.description
-      }
-      if (data.banner != null) {
-        it[abilities.banner] = data.banner
-      }
-    }
-    return Ability(this.guild, payload.extend(data))
+  fun update(
+    name: String?,
+    type: AbilityType?,
+    percent: Int?,
+    npcKind: Int?,
+    description: String?,
+    banner: String?
+  ) : Ability {
+    val payload = AbilityRepository.AbilityPayload(
+      guildId = this.guild.id,
+      id = this.id,
+      name = name ?: this.name,
+      type = type ?: this.type,
+      percent = percent ?: this.percent,
+      npcKind = npcKind ?: this.npcKind,
+      description = description ?: this.description,
+      immutable = this.immutable,
+      banner = banner ?: this.banner
+    )
+    AbilityRepository.updateAbility(
+      guildId = this.guild.id,
+      id = this.id,
+      name = name,
+      type = type,
+      percent = percent,
+      npcKind = npcKind,
+      description = description,
+      banner = banner
+    )
+    return Ability(this.guild, payload)
   }
 
   fun delete() : Ability {
-    abilities.deleteWhere {
-      (abilities.guild_id eq this@Ability.guild.id)
-        .and(abilities.id eq this@Ability.payload.id)
-    }
+    AbilityRepository.deleteAbility(this.guild.id, this.id)
     return this
   }
 }

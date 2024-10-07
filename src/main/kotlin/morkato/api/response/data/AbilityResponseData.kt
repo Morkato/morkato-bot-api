@@ -16,15 +16,16 @@ data class AbilityResponseData(
 ) {
   companion object {
     fun from(ability: Ability) : AbilityResponseData {
+      val payload = ability.payload
       return AbilityResponseData(
-        ability.guildId, ability.id.toString(),
-        ability.name,
-        ability.type,
-        ability.percent,
-        ability.npcKind,
-        ability.immutable,
-        ability.description,
-        ability.banner
+        ability.guild.id, payload.id.toString(),
+        payload.name,
+        payload.type,
+        payload.percent,
+        payload.npcKind,
+        payload.immutable,
+        payload.description,
+        payload.banner
       )
     }
   }

@@ -5,7 +5,6 @@ import morkato.api.database.attack.Attack
 data class AttackArtResponseData(
   val guild_id: String,
   val id: String,
-
   val name: String,
   val name_prefix_art: String?,
   val description: String?,
@@ -17,17 +16,17 @@ data class AttackArtResponseData(
 ) {
   companion object {
     fun from(attack: Attack) : AttackArtResponseData {
+      val payload = attack.payload
       return AttackArtResponseData(
-        attack.guildId,
-        attack.id.toString(),
-        attack.name,
-        attack.namePrefixArt,
-        attack.description,
-        attack.banner,
-        attack.damage,
-        attack.breath,
-        attack.blood,
-        attack.intents
+        attack.guild.id, payload.id.toString(),
+        payload.name,
+        payload.namePrefixArt,
+        payload.description,
+        payload.banner,
+        payload.damage,
+        payload.breath,
+        payload.blood,
+        payload.intents
       );
     }
   }

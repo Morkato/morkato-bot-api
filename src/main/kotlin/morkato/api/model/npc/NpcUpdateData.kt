@@ -1,9 +1,9 @@
-package morkato.api.models.npc;
+package morkato.api.model.npc;
 
-import morkato.api.infra.validation.AttrSchema;
-import morkato.api.infra.validation.BannerSchema;
-import morkato.api.infra.validation.KeySchema;
-import morkato.api.infra.validation.NameSchema;
+import morkato.api.dto.validation.AttrSchema;
+import morkato.api.dto.validation.BannerSchema;
+import morkato.api.dto.validation.KeySchema;
+import morkato.api.dto.validation.NameSchema;
 
 data class NpcUpdateData(
   @NameSchema val name: String?,

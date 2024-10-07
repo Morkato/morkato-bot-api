@@ -1,4 +1,4 @@
-package morkato.api.models.npc;
+package morkato.api.model.npc;
 
 enum class NpcType {
   HUMAN,

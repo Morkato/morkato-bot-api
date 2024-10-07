@@ -1,11 +1,11 @@
-package morkato.api.models.attack;
+package morkato.api.model.attack;
 
 import jakarta.validation.constraints.NotNull;
-import morkato.api.infra.validation.NameSchema;
-import morkato.api.infra.validation.NamePrefixArtSchema;
-import morkato.api.infra.validation.DescriptionSchema;
-import morkato.api.infra.validation.BannerSchema;
-import morkato.api.infra.validation.AttrSchema;
+import morkato.api.dto.validation.NameSchema;
+import morkato.api.dto.validation.NamePrefixArtSchema;
+import morkato.api.dto.validation.DescriptionSchema;
+import morkato.api.dto.validation.BannerSchema;
+import morkato.api.dto.validation.AttrSchema;
 
 data class AttackCreateData(
   @NotNull @NameSchema val name: String,

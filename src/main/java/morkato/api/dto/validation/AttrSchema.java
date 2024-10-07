@@ -1,4 +1,4 @@
-package morkato.api.infra.validation;
+package morkato.api.dto.validation;
 
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.ElementType;

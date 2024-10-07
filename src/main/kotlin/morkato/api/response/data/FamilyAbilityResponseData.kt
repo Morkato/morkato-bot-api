@@ -1,23 +1,18 @@
 package morkato.api.response.data
 
-import morkato.api.database.ability.Ability
-import morkato.api.database.family.Family
+import morkato.api.database.foreign.AbilityFamily
 
 data class FamilyAbilityResponseData(
   val guild_id: String,
   val family_id: String,
-  val ability_id: String,
-  val family_name: String,
-  val ability_name: String
+  val ability_id: String
 ) {
   companion object {
-    fun from(family: Family, ability: Ability) : FamilyAbilityResponseData {
+    fun from(familyAbility: AbilityFamily) : FamilyAbilityResponseData {
       return FamilyAbilityResponseData(
-        family.guildId,
-        family.id.toString(),
-        ability.id.toString(),
-        family.name,
-        ability.name
+        familyAbility.guild.id,
+        familyAbility.familyId.toString(),
+        familyAbility.abilityId.toString()
       )
     }
   }

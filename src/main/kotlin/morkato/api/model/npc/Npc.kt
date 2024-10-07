@@ -1,4 +1,4 @@
-package morkato.api.models.npc
+package morkato.api.model.npc
 
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import morkato.api.database.foreign.AbilityNpc

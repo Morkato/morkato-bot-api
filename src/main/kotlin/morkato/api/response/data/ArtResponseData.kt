@@ -1,7 +1,6 @@
 package morkato.api.response.data
 
 import morkato.api.database.art.ArtType
-import morkato.api.database.art.Art
 
 data class ArtResponseData(
   val guild_id: String,
@@ -13,14 +12,14 @@ data class ArtResponseData(
   val attacks: List<AttackArtResponseData>
 ) {
   companion object {
-    fun from(art: Art, attacks: List<AttackArtResponseData>) : ArtResponseData {
+    fun from(art: morkato.api.model.art.Art, attacks: List<AttackArtResponseData>) : ArtResponseData {
+      val payload = art.payload
       return ArtResponseData(
-        art.guildId,
-        art.id.toString(),
-        art.name,
-        art.type,
-        art.description,
-        art.banner,
+        art.guild.id, payload.id.toString(),
+        payload.name,
+        payload.type,
+        payload.description,
+        payload.banner,
         attacks
       )
     }

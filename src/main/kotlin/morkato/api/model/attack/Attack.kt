@@ -1,69 +1,76 @@
-package morkato.api.models.attack
+package morkato.api.model.attack
 
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import morkato.api.database.tables.attacks
-import morkato.api.database.guild.Guild
-import org.jetbrains.exposed.sql.*
+import morkato.api.infra.repository.AttackRepository
+import morkato.api.model.guild.Guild
+
+import org.jetbrains.exposed.sql.ResultRow
 
 class Attack(
   val guild: Guild,
-  val payload: AttackPayload
+  val id: Long,
+  val name: String,
+  val artId: Long,
+  val namePrefixArt: String?,
+  val description: String?,
+  val banner: String?,
+  val damage: Long,
+  val breath: Long,
+  val blood: Long,
+  val intents: Int
 ) {
-  companion object {
-    fun getPayload(row: ResultRow): AttackPayload {
-      return AttackPayload(
-        row[attacks.guild_id],
-        row[attacks.id],
-        row[attacks.name],
-        row[attacks.art_id],
-        row[attacks.name_prefix_art],
-        row[attacks.description],
-        row[attacks.banner],
-        row[attacks.damage],
-        row[attacks.breath],
-        row[attacks.blood],
-        row[attacks.intents]
-      )
-    }
-  }
-
-  fun update(data: AttackUpdateData) : Attack {
-    attacks.update({
-      (attacks.guild_id eq guild.id)
-        .and (attacks.id eq payload.id)
-    }) {
-      if (data.name != null) {
-        it[attacks.name] = data.name
-      }
-      if (data.name_prefix_art != null) {
-        it[attacks.name_prefix_art] = data.name_prefix_art
-      }
-      if (data.description != null) {
-        it[attacks.description] = data.description
-      }
-      if (data.banner != null) {
-        it[attacks.banner] = data.banner
-      }
-      if (data.damage != null) {
-        it[attacks.damage] = data.damage
-      }
-      if (data.breath != null) {
-        it[attacks.breath] = data.breath
-      }
-      if (data.blood != null) {
-        it[attacks.blood] = data.blood
-      }
-      if (data.intents != null) {
-        it[attacks.intents] = data.intents
-      }
-    }
-    return Attack(guild, payload.extend(data))
+  public constructor(guild: Guild, row: ResultRow) : this(guild, AttackRepository.AttackPayload(row)) {}
+  public  constructor(guild: Guild, payload: AttackRepository.AttackPayload) : this(
+    guild,
+    payload.id,
+    payload.name,
+    payload.artId,
+    payload.namePrefixArt,
+    payload.description,
+    payload.banner,
+    payload.damage,
+    payload.breath,
+    payload.blood,
+    payload.intents
+  ) {}
+  fun update(
+    name: String? = null,
+    namePrefixArt: String? = null,
+    description: String? = null,
+    banner: String? = null,
+    damage: Long? = null,
+    breath: Long? = null,
+    blood: Long? = null,
+    intents: Int? = null
+  ) : Attack {
+    val payload = AttackRepository.AttackPayload(
+      guildId = this.guild.id,
+      id = this.id,
+      name = name ?: this.name,
+      artId = this.artId,
+      namePrefixArt = namePrefixArt ?: this.namePrefixArt,
+      description = description ?: this.description,
+      banner = banner ?: this.banner,
+      damage = damage ?: this.damage,
+      breath = breath ?: this.breath,
+      blood = blood ?: this.blood,
+      intents = intents ?: this.intents
+    )
+    AttackRepository.updateAttack(
+      guildId = this.guild.id,
+      id = this.id,
+      name = name,
+      namePrefixArt = namePrefixArt,
+      description = description,
+      banner = banner,
+      damage = damage,
+      breath = breath,
+      blood = blood,
+      intents = intents
+    )
+    return Attack(this.guild, payload)
   }
   fun delete() : Attack {
-    attacks.deleteWhere {
-      (attacks.guild_id eq guild.id)
-        .and(attacks.id eq payload.id)
-    }
+    AttackRepository.deleteAttack(this.guild.id, this.id)
     return this
   }
 }

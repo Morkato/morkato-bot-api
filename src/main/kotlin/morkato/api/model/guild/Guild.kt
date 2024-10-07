@@ -1,287 +1,172 @@
-package morkato.api.models.guild
+package morkato.api.model.guild
 
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.*
-
+import morkato.api.infra.repository.AbilityRepository
+import morkato.api.infra.repository.AttackRepository
 import morkato.api.infra.repository.GuildRepository
-
-import morkato.api.database.ability.AbilityCreateData
-import morkato.api.database.ability.AbilityPayload
-import morkato.api.database.ability.Ability
-
-import morkato.api.database.tables.abilities_families
-import morkato.api.database.tables.abilities
-import morkato.api.database.tables.families
-import morkato.api.database.tables.players
-import morkato.api.database.tables.attacks
-import morkato.api.database.tables.guilds
-import morkato.api.database.tables.arts
-import morkato.api.database.tables.npcs
-
-import morkato.api.database.art.ArtCreateData
-import morkato.api.database.art.ArtPayload
-import morkato.api.models.art.Art
-
-import morkato.api.database.foreign.AbilityFamily
-import morkato.api.database.attack.Attack
-
-import morkato.api.database.family.FamilyCreateData
-import morkato.api.database.family.FamilyPayload
-import morkato.api.database.family.Family
-
-import morkato.api.database.npc.NpcCreateData
-import morkato.api.database.npc.NpcPayload
-import morkato.api.database.npc.NpcType
-import morkato.api.database.npc.Npc
-
-import morkato.api.database.player.PlayerCreateData
-import morkato.api.database.player.PlayerPayload
-import morkato.api.database.player.Player
+import morkato.api.infra.repository.ArtRepository
 import morkato.api.exception.NotFoundError
-import morkato.api.exception.ModelType;
+import morkato.api.exception.ModelType
+
+import morkato.api.model.ability.Ability
+import morkato.api.model.ability.AbilityType
+import morkato.api.model.attack.Attack
+import morkato.api.model.art.ArtType
+import morkato.api.model.art.Art
+
+import org.jetbrains.exposed.sql.ResultRow
+
+//import morkato.api.database.ability.AbilityCreateData
+//import morkato.api.database.ability.AbilityPayload
+//import morkato.api.database.ability.Ability
+//
+//import morkato.api.database.tables.abilities_families
+//import morkato.api.database.tables.abilities
+//import morkato.api.database.tables.families
+//import morkato.api.database.tables.players
+//import morkato.api.database.tables.attacks
+//import morkato.api.database.tables.arts
+//import morkato.api.database.tables.npcs
+//
+//import morkato.api.database.art.ArtCreateData
+//import morkato.api.database.art.ArtPayload
+//
+//import morkato.api.database.foreign.AbilityFamily
+//import morkato.api.database.attack.Attack
+//
+//import morkato.api.database.family.FamilyCreateData
+//import morkato.api.database.family.FamilyPayload
+//import morkato.api.database.family.Family
+//
+//import morkato.api.database.npc.NpcCreateData
+//import morkato.api.database.npc.NpcPayload
+//import morkato.api.database.npc.NpcType
+//import morkato.api.database.npc.Npc
+//
+//import morkato.api.database.player.PlayerCreateData
+//import morkato.api.database.player.PlayerPayload
+//import morkato.api.database.player.Player
 
 class Guild(
   val id: String,
-  val human_initial_life: Long,
-  val oni_initial_life: Long,
-  val hybrid_initial_life: Long,
-  val breath_initial: Long,
-  val blood_initial: Long,
-  val family_roll: Int,
-  val ability_roll: Int,
-  val roll_category_id: String?,
-  val off_category_id: String?
+  val humanInitialLife: Long,
+  val oniInitialLife: Long,
+  val hybridInitialLife: Long,
+  val breathInitial: Long,
+  val bloodInitial: Long,
+  val familyRoll: Int,
+  val abilityRoll: Int,
+  val rollCategoryId: String?,
+  val offCategoryId: String?
 ) {
   public constructor(row: ResultRow) : this(GuildRepository.GuildPayload(row)) {}
   public constructor(payload: GuildRepository.GuildPayload) : this(
     payload.id,
-    payload.human_initial_life,
-    payload.oni_initial_life,
-    payload.hybrid_initial_life,
-    payload.breath_initial,
-    payload.blood_initial,
-    payload.family_roll,
-    payload.ability_roll,
-    payload.roll_category_id,
-    payload.off_category_id
+    payload.humanInitialLife,
+    payload.oniInitialLife,
+    payload.hybridInitialLife,
+    payload.breathInitial,
+    payload.bloodInitial,
+    payload.familyRoll,
+    payload.abilityRoll,
+    payload.rollCategoryId,
+    payload.offCategoryId
   ) {}
-  companion object {
-    fun from(row: ResultRow) : Guild {
-      return Guild(
-        row[guilds.id],
-        row[guilds.human_initial_life],
-        row[guilds.oni_initial_life],
-        row[guilds.hybrid_initial_life],
-        row[guilds.breath_initial],
-        row[guilds.blood_initial],
-        row[guilds.family_roll],
-        row[guilds.ability_roll],
-        row[guilds.roll_category_id],
-        row[guilds.off_category_id]
-      )
-    }
-
-    fun getRefOrCreate(id: String) : Guild {
-      try {
-        return getReference(id);
-      } catch(exc: Exception) {
-        return create(id);
-      }
-    }
-
-    fun getReference(id: String) : Guild {
-
-    }
-
-    fun create(id: String) : Guild {
-      guilds.insert {
-        it[guilds.id] = id
-      }
-      return Guild(
-        id = id,
-        human_initial_life = 1000,
-        oni_initial_life = 500,
-        hybrid_initial_life = 1500,
-        breath_initial = 500,
-        blood_initial = 1000,
-        family_roll = 3,
-        ability_roll = 3,
-        roll_category_id = null,
-        off_category_id = null
-      )
-    }
-  }
-  fun update(data: GuildUpdateData) : Guild {
-    guilds.update({
-      (guilds.id eq this@Guild.id)
-    }) {
-      if (data.human_initial_life != null) {
-        it[this.human_initial_life] = data.human_initial_life
-      }
-      if (data.oni_initial_life != null) {
-        it[this.oni_initial_life] = data.oni_initial_life
-      }
-      if (data.hybrid_initial_life != null) {
-        it[this.hybrid_initial_life] = data.hybrid_initial_life
-      }
-      if (data.breath_initial != null) {
-        it[this.breath_initial] = data.breath_initial
-      }
-      if (data.blood_initial != null) {
-        it[this.blood_initial] = data.blood_initial
-      }
-      if (data.family_roll != null) {
-        it[this.family_roll] = data.family_roll
-      }
-      if (data.ability_roll != null) {
-        it[this.ability_roll] = data.ability_roll
-      }
-      if (data.roll_category_id != null) {
-        it[this.roll_category_id] = data.roll_category_id
-      }
-      if (data.off_category_id != null) {
-        it[this.off_category_id] = data.off_category_id
-      }
-    }
-    return Guild(
-      id = id,
-      human_initial_life = data.human_initial_life ?: 1000,
-      oni_initial_life = data.oni_initial_life ?: 500,
-      hybrid_initial_life = data.hybrid_initial_life ?: 1500,
-      breath_initial = data.breath_initial ?: 500,
-      blood_initial = data.blood_initial ?: 1000,
-      family_roll = data.family_roll ?: 3,
-      ability_roll = data.ability_roll ?: 3,
-      roll_category_id = data.roll_category_id,
-      off_category_id = data.off_category_id
+  fun update(
+    humanInitialLife: Long?,
+    oniInitialLife: Long?,
+    hybridInitialLife: Long?,
+    breathInitial: Long?,
+    bloodInitial: Long?,
+    familyRoll: Int?,
+    abilityRoll: Int?,
+    rollCategoryId: String?,
+    offCategoryId: String?
+  ) : Guild {
+    val payload = GuildRepository.GuildPayload(
+      id = this.id,
+      humanInitialLife = humanInitialLife ?: this.humanInitialLife,
+      oniInitialLife = oniInitialLife ?: this.oniInitialLife,
+      hybridInitialLife = hybridInitialLife ?: this.hybridInitialLife,
+      breathInitial = breathInitial ?: this.breathInitial,
+      bloodInitial = bloodInitial ?: this.bloodInitial,
+      familyRoll = familyRoll ?: this.familyRoll,
+      abilityRoll = abilityRoll ?: this.abilityRoll,
+      rollCategoryId = rollCategoryId ?: this.rollCategoryId,
+      offCategoryId = offCategoryId ?: this.offCategoryId
     )
-  }
-  fun getAllArts() : List<morkato.api.models.art.Art> {
-    return arts
-      .selectAll()
-      .where(arts.guild_id eq id)
-      .asSequence()
-      .map(morkato.api.models.art.Art::getPayload)
-      .map { morkato.api.models.art.Art(this, it) }
-      .toList()
-  }
-  fun getArt(id: Long) : morkato.api.models.art.Art {
-    try {
-      val row = arts
-        .selectAll()
-        .where(
-          (arts.guild_id eq this.id)
-            and (arts.id eq id)
-        )
-        .single()
-      val payload = morkato.api.models.art.Art.getPayload(row)
-      return morkato.api.models.art.Art(this, payload)
-    } catch (exc: NoSuchElementException) {
-      val extra: Map<String, Any?> = mapOf(
-        "guild_id" to this.id,
-        "id" to id.toString()
-      )
-      throw NotFoundError(ModelType.ART, extra)
-    }
-  }
-  fun createArt(data: ArtCreateData) : morkato.api.models.art.Art {
-    val id = arts.insert {
-      it[this.guild_id] = this@Guild.id
-      it[this.name] = data.name
-      it[this.type] = data.type
-      it[this.description] = data.description
-      it[this.banner] = data.banner
-    } get arts.id
-    val payload = ArtPayload(
-      this.id, id,
-      name = data.name,
-      type = data.type,
-      description = data.description,
-      banner = data.banner
+    GuildRepository.updateGuild(
+      id = this.id,
+      humanInitialLife = humanInitialLife,
+      oniInitialLife = oniInitialLife,
+      hybridInitialLife = hybridInitialLife,
+      breathInitial = breathInitial,
+      bloodInitial = bloodInitial,
+      familyRoll = familyRoll,
+      abilityRoll = abilityRoll,
+      rollCategoryId = rollCategoryId,
+      offCategoryId = offCategoryId
     )
-    return morkato.api.models.art.Art(this, payload)
+    return Guild(payload)
+  }
+  fun getAllArts() : Sequence<Art> {
+    return ArtRepository.findAllByGuildId(this.id)
+      .map { Art(this@Guild, it) }
+  }
+  fun getArt(id: Long) : Art {
+    val payload = ArtRepository.findById(this.id, id)
+    return Art(this, payload)
+  }
+  fun createArt(
+    name: String,
+    type: ArtType,
+    description: String?,
+    banner: String?
+  ) : Art {
+    val payload = ArtRepository.createArt(
+      guildId = this.id,
+      name = name,
+      type = type,
+      description = description,
+      banner = banner
+    )
+    return Art(this, payload)
   }
 
-  fun getAllAttacks() : List<Attack> {
-    return attacks
-      .selectAll()
-      .where(attacks.guild_id eq id)
-      .asSequence()
-      .map(Attack::getPayload)
-      .map { Attack(this, it) }
-      .toList()
+  fun getAllAttacks() : Sequence<Attack> {
+    return AttackRepository.findAllByGuildId(this.id)
+      .map { Attack(this@Guild, it) }
   }
   fun getAttack(id: Long) : Attack {
-    try {
-      val row = attacks
-        .selectAll()
-        .where((attacks.guild_id eq this.id)
-          .and (attacks.id eq id))
-        .limit(1)
-        .single()
-      val payload = Attack.getPayload(row)
-      return Attack(this, payload)
-    } catch (exc: NoSuchElementException) {
-      val extra: Map<String, Any?> = mapOf(
-        "guild_id" to this.id,
-        "id" to id.toString()
-      )
-      throw NotFoundError(ModelType.ATTACK, extra)
-    }
+    val payload = AttackRepository.findById(this.id, id)
+    return Attack(this, payload)
   }
 
-  fun getAllAbilities() : List<Ability> {
-    return abilities
-      .selectAll()
-      .where({ abilities.guild_id eq this@Guild.id })
-      .asSequence()
-      .map(Ability::getPayload)
-      .map { Ability(this@Guild, it) }
-      .toList()
+  fun getAllAbilities() : Sequence<Ability> {
+    return AbilityRepository.findAllByGuildId(this.id)
+      .map { Ability(this, it) }
   }
   fun getAbility(id: Long) : Ability {
-    try {
-      val row = abilities
-        .selectAll()
-        .where({
-          (abilities.guild_id eq this@Guild.id)
-            .and(abilities.id eq id)
-        })
-        .single()
-      val payload = Ability.getPayload(row)
-      return Ability(this, payload)
-    } catch (exc: NoSuchElementException) {
-      val extra: Map<String, Any?> = mapOf(
-        "guild_id" to this.id,
-        "id" to id.toString()
-      )
-      throw NotFoundError(ModelType.ABILITY, extra)
-    }
+    val payload = AbilityRepository.findById(this.id, id)
+    Ability(this, payload)
   }
-  fun createAbility(data: AbilityCreateData) : Ability {
-    val id = abilities.insert {
-      it[abilities.guild_id] = this@Guild.id
-      it[abilities.name] = data.name
-      it[abilities.type] = data.type
-      it[abilities.npc_kind] = data.npc_kind
-      it[abilities.description] = data.description
-      it[abilities.banner] = data.banner
-      if (data.percent != null) {
-        it[abilities.percent] = data.percent
-      }
-      if (data.immutable != null) {
-        it[abilities.immutable] = data.immutable
-      }
-    } get abilities.id
-    val payload = AbilityPayload(
-      this.id, id,
-      name = data.name,
-      type = data.type,
-      percent = data.percent ?: 50,
-      npcKind = data.npc_kind,
-      immutable = data.immutable ?: false,
-      description = data.description,
-      banner = data.banner
+  fun createAbility(
+    name: String,
+    type: AbilityType,
+    percent: Int?,
+    npcKind: Int,
+    immutable: Boolean?,
+    description: String?,
+    banner: String?
+  ) : Ability {
+    val payload = AbilityRepository.createAbility(
+      guildId = this.id,
+      name = name,
+      type = type,
+      percent = percent,
+      npcKind = npcKind,
+      immutable = immutable,
+      description = description,
+      banner = banner
     )
     return Ability(this, payload)
   }

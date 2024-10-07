@@ -1,99 +1,83 @@
-package morkato.api.models.art
+package morkato.api.model.art
 
-import morkato.api.database.attack.Attack
-import morkato.api.database.attack.AttackCreateData
-import morkato.api.database.attack.AttackPayload
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import morkato.api.database.tables.arts
-import morkato.api.database.guild.Guild
-import morkato.api.database.tables.attacks
-import org.jetbrains.exposed.sql.*
+import morkato.api.infra.repository.AttackRepository
+import morkato.api.infra.repository.ArtRepository
+import morkato.api.model.attack.Attack
+import morkato.api.model.guild.Guild
+
+import org.jetbrains.exposed.sql.ResultRow
 
 class Art(
   val guild: Guild,
-  val payload: morkato.api.models.art.ArtPayload
+  val id: Long,
+  val name: String,
+  val type: ArtType,
+  val description: String?,
+  val banner: String?
 ) {
-  companion object {
-    fun getPayload(row: ResultRow) : morkato.api.models.art.ArtPayload {
-      return morkato.api.models.art.ArtPayload(
-        row[arts.guild_id],
-        row[arts.id],
-        row[arts.name],
-        row[arts.type],
-        row[arts.description],
-        row[arts.banner]
-      )
-    }
+  public constructor(guild: Guild, row: ResultRow) : this(guild, ArtRepository.ArtPayload(row)) {}
+  public  constructor(guild: Guild, payload: ArtRepository.ArtPayload) : this(
+    guild,
+    payload.id,
+    payload.name,
+    payload.type,
+    payload.description,
+    payload.banner
+  ) {}
+  fun getAllAttacks() : Sequence<Attack> {
+    return AttackRepository.findAllByGuildIdAndArtId(this.guild.id, this.id)
+      .map { Attack(this@Art.guild, it) }
   }
-
-  fun getAllAttacks() : List<Attack> {
-    return attacks
-      .selectAll()
-      .where(
-        (attacks.guild_id eq guild.id)
-          .and(attacks.art_id eq payload.id))
-      .asSequence()
-      .map(Attack::getPayload)
-      .map { Attack(this.guild, it) }
-      .toList()
-  }
-  fun createAttack(data: AttackCreateData) : Attack {
-    val id = attacks.insert {
-      it[attacks.guild_id] = guild.id
-      it[attacks.art_id] = payload.id
-      it[attacks.name] = data.name
-      it[attacks.name_prefix_art] = data.name_prefix_art
-      it[attacks.description] = data.description
-      it[attacks.banner] = data.banner
-      if (data.damage != null) {
-        it[attacks.damage] = data.damage
-      }
-      if (data.breath != null) {
-        it[attacks.breath] = data.breath
-      }
-      if (data.blood != null) {
-        it[attacks.blood] = data.blood
-      }
-      if (data.intents != null) {
-        it[attacks.intents] = data.intents
-      }
-    } get attacks.id
-    val payload = AttackPayload(
-      guild.id, id,
-      name = data.name,
-      artId = payload.id,
-      namePrefixArt = data.name_prefix_art,
-      description = data.description,
-      banner = data.banner,
-      damage = data.damage ?: 1,
-      breath = data.breath ?: 1,
-      blood = data.blood ?: 1,
-      intents = data.intents ?: 0
+  fun createAttack(
+    name: String,
+    namePrefixArt: String?,
+    description: String?,
+    banner: String?,
+    damage: Long?,
+    breath: Long?,
+    blood: Long?,
+    intents: Int?
+  ) : Attack {
+    val payload = AttackRepository.createAttack(
+      guildId = this.guild.id,
+      artId = this.id,
+      name = name,
+      namePrefixArt = namePrefixArt,
+      description = description,
+      banner = banner,
+      damage = damage,
+      breath = breath,
+      blood = blood,
+      intents = intents
     )
     return Attack(this.guild, payload)
   }
-  fun update(data: morkato.api.models.art.ArtUpdateData) : morkato.api.models.art.Art {
-    arts.update({ (arts.guild_id eq guild.id) and (arts.id eq payload.id) }) {
-      if (data.name != null) {
-        it[arts.name] = data.name
-      }
-      if (data.type != null) {
-        it[arts.type] = data.type
-      }
-      if (data.description != null) {
-        it[arts.description] = data.description
-      }
-      if (data.banner != null) {
-        it[arts.banner] = data.banner
-      }
-    }
-    return morkato.api.models.art.Art(guild, payload.extend(data))
+  fun update(
+    name: String? = null,
+    type: ArtType? = null,
+    description: String? = null,
+    banner: String? = null
+  ) : Art {
+    val payload = ArtRepository.ArtPayload(
+      guildId = this.guild.id,
+      id = this.id,
+      name = name ?: this.name,
+      type = type ?: this.type,
+      description = description ?: this.description,
+      banner = banner ?: this.banner
+    )
+    ArtRepository.updateArt(
+      guildId = this.guild.id,
+      id = this.id,
+      name = name,
+      type = type,
+      description = description,
+      banner = banner
+    )
+    return Art(this.guild, payload)
   }
-  fun delete() : morkato.api.models.art.Art {
-    arts.deleteWhere {
-      (arts.guild_id eq guild.id)
-        .and(arts.id eq payload.id)
-    }
-    return this;
+  fun delete() : Art {
+    ArtRepository.deleteArt(this.guild.id, this.id)
+    return this
   }
 }
