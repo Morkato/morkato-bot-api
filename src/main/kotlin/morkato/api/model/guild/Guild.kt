@@ -1,17 +1,21 @@
 package morkato.api.model.guild
 
+import morkato.api.infra.repository.AbilityFamilyRepository
 import morkato.api.infra.repository.AbilityRepository
+import morkato.api.infra.repository.FamilyRepository
 import morkato.api.infra.repository.AttackRepository
 import morkato.api.infra.repository.GuildRepository
 import morkato.api.infra.repository.ArtRepository
 import morkato.api.exception.NotFoundError
 import morkato.api.exception.ModelType
 
-import morkato.api.model.ability.Ability
 import morkato.api.model.ability.AbilityType
+import morkato.api.model.ability.Ability
+import morkato.api.model.family.Family
 import morkato.api.model.attack.Attack
 import morkato.api.model.art.ArtType
 import morkato.api.model.art.Art
+import morkato.api.model.npc.NpcType
 
 import org.jetbrains.exposed.sql.ResultRow
 
@@ -171,65 +175,34 @@ class Guild(
     return Ability(this, payload)
   }
 
-  fun getAllFamilies() : List<Family> {
-    return families
-      .selectAll()
-      .where({ families.guild_id eq this@Guild.id })
-      .asSequence()
-      .map(Family::getPayload)
+  fun getAllFamilies() : Sequence<Family> {
+    return FamilyRepository.findAllByGuildId(this.id)
       .map { Family(this@Guild, it) }
-      .toList()
   }
   fun getFamily(id: Long) : Family {
-    try {
-      val row = families
-        .selectAll()
-        .where({
-          (families.guild_id eq this@Guild.id)
-            .and(families.id eq id)
-        })
-        .single()
-      val payload = Family.getPayload(row)
-      return Family(this, payload)
-    } catch (exc: NoSuchElementException) {
-      val extra: Map<String, Any?> = mapOf(
-        "guild_id" to this.id,
-        "id" to id.toString()
-      )
-      throw NotFoundError(ModelType.FAMILY, extra)
-    }
+    val payload = FamilyRepository.findById(this.id, id)
+    return Family(this, payload)
   }
-  fun createFamily(data: FamilyCreateData) : Family {
-    val id = families.insert {
-      it[this.guild_id] = this@Guild.id
-      it[this.name] = data.name
-      it[this.npc_kind] = data.npc_kind
-      it[this.description] = data.description
-      it[this.banner] = data.banner
-      if (data.percent != null) {
-        it[this.percent] = data.percent
-      }
-    } get families.id
-    val payload = FamilyPayload(
-      this.id, id,
-      name = data.name,
-      percent = data.percent ?: 50,
-      npcKind = data.npc_kind,
-      description = data.description,
-      banner = data.banner
+  fun createFamily(
+    name: String,
+    npcKind: NpcType,
+    percent: Int?,
+    description: String?,
+    banner: String?
+  ) : Family {
+    val payload = FamilyRepository.createFamily(
+      guildId = this.id,
+      name = name,
+      npcKind = npcKind,
+      percent = percent,
+      description = description,
+      banner = banner
     )
     return Family(this, payload)
   }
 
-  fun getAllRelationAbilitiesFamilies() : List<AbilityFamily> {
-    return abilities_families
-      .selectAll()
-      .where({
-        (abilities_families.guild_id eq this@Guild.id)
-      })
-      .asSequence()
-      .map { AbilityFamily(this@Guild, it[abilities_families.ability_id], it[abilities_families.family_id]) }
-      .toList()
+  fun getAllAbilitiesFamilies() : Sequence<AbilityFamilyRepository.AbilityFamilyPayload> {
+    return AbilityFamilyRepository.findAllByGuildId(this.id)
   }
 
   fun getNpc(id: Long) : Npc {
