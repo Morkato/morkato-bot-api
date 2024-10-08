@@ -1,77 +1,72 @@
 package morkato.api.model.family
 
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import morkato.api.database.foreign.AbilityFamily
-import morkato.api.database.tables.abilities_families
-import morkato.api.database.tables.families
-import morkato.api.database.guild.Guild
-import org.jetbrains.exposed.sql.*
+import morkato.api.infra.repository.AbilityFamilyRepository
+import morkato.api.infra.repository.FamilyRepository
+import morkato.api.model.guild.Guild
+import morkato.api.model.npc.NpcType
+
+import org.jetbrains.exposed.sql.ResultRow
 
 class Family(
   val guild: Guild,
-  val payload: FamilyPayload
+  val id: Long,
+  val percent: Int,
+  val npcKind: NpcType,
+  val name: String,
+  val description: String?,
+  val banner: String?
 ) {
-  companion object {
-    fun getPayload(row: ResultRow) : FamilyPayload {
-      return FamilyPayload(
-        row[families.guild_id],
-        row[families.id],
-        row[families.percent],
-        row[families.npc_kind],
-        row[families.name],
-        row[families.description],
-        row[families.banner]
-      )
-    }
+  public constructor(guild: Guild, row: ResultRow) : this(guild, FamilyRepository.FamilyPayload(row));
+  public constructor(guild: Guild, payload: FamilyRepository.FamilyPayload) : this(
+    guild,
+    payload.id,
+    payload.percent,
+    payload.npcKind,
+    payload.name,
+    payload.description,
+    payload.banner
+  );
+  fun getAllAbilities() : Sequence<AbilityFamilyRepository.AbilityFamilyPayload> {
+    return AbilityFamilyRepository.findAllByGuildIdAndFamilyId(this.guild.id, this.id)
   }
-  fun getAllAbilities() : List<AbilityFamily> {
-    return abilities_families
-      .selectAll()
-      .where({
-        (abilities_families.guild_id eq this@Family.guild.id)
-          .and(abilities_families.family_id eq this@Family.payload.id)
-      })
-      .asSequence()
-      .map { AbilityFamily(this@Family.guild, it[abilities_families.ability_id], it[abilities_families.family_id]) }
-      .toList()
-  }
-  fun update(data: FamilyUpdateData) : Family {
-    families.update({
-      (families.guild_id eq this@Family.guild.id)
-        .and(families.id eq this@Family.payload.id)
-    }) {
-      if (data.name != null) {
-        it[this.name] = data.name
-      }
-      if (data.description != null) {
-        it[this.description] = data.description
-      }
-      if (data.banner != null) {
-        it[this.banner] = data.banner
-      }
-    }
-    val payload = payload.extend(data)
+  fun update(
+    name: String?,
+    npcKind: NpcType?,
+    percent: Int?,
+    description: String?,
+    banner: String?
+  ) : Family {
+    val payload = FamilyRepository.FamilyPayload(
+      guildId = this.guild.id,
+      id = this.id,
+      name = name ?: this.name,
+      npcKind = npcKind ?: this.npcKind,
+      percent = percent ?: this.percent,
+      description = description ?: this.description,
+      banner = banner ?: this.banner
+    )
+    FamilyRepository.updateFamily(
+      guildId = this.guild.id,
+      id = this.id,
+      name = name,
+      npcKind = npcKind,
+      percent = percent,
+      description = description,
+      banner = banner
+    )
     return Family(this.guild, payload)
   }
 
-  fun addAbility(id: Long) : AbilityFamily {
-    abilities_families.insert {
-      it[this.guild_id] = this@Family.guild.id
-      it[this.ability_id] = id
-      it[this.family_id] = this@Family.payload.id
-    }
-    return AbilityFamily(this.guild, id, this.payload.id)
+  fun addAbility(id: Long) : AbilityFamilyRepository.AbilityFamilyPayload {
+    return AbilityFamilyRepository.createAbilityFamily(this.guild.id, id, this.id)
   }
-  fun dropAbility(id: Long) : AbilityFamily {
-    val ability = AbilityFamily(this.guild, id, this.payload.id)
-    return ability.delete()
+  fun dropAbility(id: Long) : AbilityFamilyRepository.AbilityFamilyPayload {
+    AbilityFamilyRepository.deleteAbilityFamily(this.guild.id, id, this.id)
+    return AbilityFamilyRepository.AbilityFamilyPayload(this.guild.id, id, this.id)
   }
 
   fun delete() : Family {
-    families.deleteWhere {
-      (families.guild_id eq this@Family.guild.id)
-        .and(families.id eq this@Family.payload.id)
-    }
+    FamilyRepository.deleteFamily(this.guild.id, this.id)
     return this
   }
 }
