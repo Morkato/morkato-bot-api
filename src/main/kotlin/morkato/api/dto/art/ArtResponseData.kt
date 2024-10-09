@@ -1,6 +1,5 @@
 package morkato.api.dto.art
 
-import morkato.api.model.attack.Attack
 import morkato.api.model.art.ArtType
 import morkato.api.model.art.Art
 
@@ -11,7 +10,7 @@ data class ArtResponseData(
   val type: ArtType,
   val description: String?,
   val banner: String?,
-  val attacks: List<Attack>
+  val attacks: List<ArtAttackResponseData>
 ) {
   public constructor(art: Art, attacks: List<ArtAttackResponseData>) : this(
     art.guild.id,
