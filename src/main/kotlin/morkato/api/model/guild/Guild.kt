@@ -8,6 +8,7 @@ import morkato.api.model.ability.AbilityType
 import morkato.api.model.ability.Ability
 import morkato.api.model.family.Family
 import morkato.api.model.attack.Attack
+import morkato.api.model.player.Player
 import morkato.api.model.npc.NpcType
 import morkato.api.model.npc.Npc
 import morkato.api.model.art.ArtType
@@ -147,7 +148,7 @@ class Guild(
   }
   fun getAbility(id: Long) : Ability {
     val payload = AbilityRepository.findById(this.id, id)
-    Ability(this, payload)
+    return Ability(this, payload)
   }
   fun createAbility(
     name: String,
@@ -206,10 +207,11 @@ class Guild(
     return Npc(this, payload)
   }
   fun getNpcBySurname(surname: String) : Npc {
-    val payload = NpcRepository.findBySurname(this, surname)
+    val payload = NpcRepository.findBySurname(this.id, surname)
     return Npc(this, payload)
   }
   fun createNpc(
+    playerId: String? = null,
     name: String,
     type: NpcType,
     familyId: Long,
@@ -225,6 +227,7 @@ class Guild(
     val breath = this.breathInitial
     val blood = this.bloodInitial
     val payload = NpcRepository.createNpc(
+      playerId = playerId,
       guildId = this.id,
       name = name,
       type = type,
@@ -240,49 +243,28 @@ class Guild(
   }
 
   fun getPlayer(id: String) : Player {
-    try {
-      val row = players
-        .selectAll()
-        .where({
-          (players.guild_id eq this@Guild.id)
-            .and(players.id eq id)
-        })
-        .limit(1)
-        .single()
-      val payload = Player.getPayload(row)
-      return Player(this, payload)
-    } catch (exc: NoSuchElementException) {
-      val extra: Map<String, String> = mapOf(
-        "guild_id" to this.id,
-        "id" to id
-      )
-      throw NotFoundError(ModelType.PLAYER, extra)
-    }
+    val payload = PlayerRepository.findById(this.id, id)
+    return Player(this, payload)
   }
-  fun createPlayer(data: PlayerCreateData, id: String) : Player {
-    val abilityRoll = data.ability_roll ?: this@Guild.ability_roll
-    val familyRoll = data.family_roll ?: this@Guild.family_roll
-    players.insert {
-      it[this.guild_id] = this@Guild.id
-      it[this.id] = id
-      it[this.ability_roll] = abilityRoll
-      it[this.family_roll] = familyRoll
-      it[this.expected_npc_kind] = data.expected_npc_kind
-      if (data.is_prodigy != null) {
-        it[this.is_prodigy] = data.is_prodigy
-      }
-      if (data.has_mark != null) {
-        it[this.has_mark] = data.has_mark
-      }
-    }
-    val payload = PlayerPayload(
+  fun createPlayer(
+    id: String,
+    expectedNpcType: NpcType,
+    abilityRoll: Int?,
+    familyRoll: Int?,
+    isProdigy: Boolean?,
+    hasMark: Boolean?,
+    expectedFamilyId: Long?
+  ) : Player {
+    val thisAbilityRoll = abilityRoll ?: this@Guild.abilityRoll
+    val thisFamilyRoll = familyRoll ?: this@Guild.familyRoll
+    val payload = PlayerRepository.createPlayer(
       this.id, id,
-      abilityRoll = abilityRoll,
-      familyRoll = familyRoll,
-      isProdigy = data.is_prodigy ?: false,
-      hasMark = data.has_mark ?: false,
-      expectedFamilyId = null,
-      expectedNpcType = data.expected_npc_kind
+      abilityRoll = thisAbilityRoll,
+      familyRoll = thisFamilyRoll,
+      isProdigy = isProdigy,
+      hasMark = hasMark,
+      expectedFamilyId = expectedFamilyId,
+      expectedNpcType = expectedNpcType
     )
     return Player(this, payload)
   }
