@@ -1,103 +1,98 @@
 package morkato.api.model.npc
 
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import morkato.api.database.foreign.AbilityNpc
-import morkato.api.database.tables.npcs_abilities
-import morkato.api.database.tables.npcs
-import morkato.api.database.guild.Guild
-import org.jetbrains.exposed.sql.*
+import morkato.api.infra.repository.NpcAbilityRepository
+import morkato.api.infra.repository.NpcRepository
+import morkato.api.model.guild.Guild
+
+import org.jetbrains.exposed.sql.ResultRow
 
 class Npc(
   val guild: Guild,
-  val payload: NpcPayload
+  val id: Long,
+  val name: String,
+  val type: NpcType,
+  val familyId: Long,
+  val surname: String,
+  val energy: Int,
+  val maxLife: Long,
+  val maxBreath: Long,
+  val maxBlood: Long,
+  val currentLife: Long,
+  val currentBreath: Long,
+  val currentBlood: Long,
+  val icon: String?
 ) {
-  companion object {
-    fun getPayload(row: ResultRow): NpcPayload {
-      return NpcPayload(
-        row[npcs.guild_id],
-        row[npcs.id],
-        row[npcs.name],
-        row[npcs.type],
-        row[npcs.family_id],
-        row[npcs.surname],
-        row[npcs.energy],
-        row[npcs.max_life],
-        row[npcs.max_breath],
-        row[npcs.max_blood],
-        row[npcs.current_life],
-        row[npcs.current_breath],
-        row[npcs.current_blood],
-        row[npcs.icon]
-      )
-    }
+  public constructor(guild: Guild, row: ResultRow) : this(guild, NpcRepository.NpcPayload(row));
+  public constructor(guild: Guild, payload: NpcRepository.NpcPayload) : this(
+    guild,
+    payload.id,
+    payload.name,
+    payload.type,
+    payload.familyId,
+    payload.surname,
+    payload.energy,
+    payload.maxLife,
+    payload.maxBreath,
+    payload.maxBlood,
+    payload.currentLife,
+    payload.currentBreath,
+    payload.currentBlood,
+    payload.icon
+  );
+  fun getAllAbilities() : Sequence<NpcAbilityRepository.NpcAbilityPayload> {
+    return NpcAbilityRepository.findAllByGuildIdAndNpcId(this.guild.id, this.id)
+  }
+  fun addAbility(id: Long) : NpcAbilityRepository.NpcAbilityPayload {
+    return NpcAbilityRepository.createNpcAbility(this.guild.id, this.id, id)
   }
 
-  fun getAllAbilities() : List<AbilityNpc> {
-    return npcs_abilities
-      .selectAll()
-      .where({
-        (npcs_abilities.guild_id eq this@Npc.guild.id)
-          .and(npcs_abilities.npc_id eq this@Npc.payload.id)
-      })
-      .map {
-        return@map AbilityNpc(this@Npc.guild, this.payload.id, it[npcs_abilities.ability_id])
-      }
-  }
-  fun addAbility(id: Long) : AbilityNpc {
-    npcs_abilities.insert {
-      it[this.guild_id] = this@Npc.guild.id
-      it[this.npc_id] = this@Npc.payload.id
-      it[this.ability_id] = id
-    }
-    return AbilityNpc(this.guild, this.payload.id, id)
-  }
-
-  fun update(data: NpcUpdateData) : Npc {
-    npcs.update({
-      (npcs.guild_id eq this@Npc.guild.id)
-        .and(npcs.id eq this@Npc.payload.id)
-    }) {
-      if (data.name != null) {
-        it[npcs.name] = data.name
-      }
-      if (data.type != null) {
-        it[npcs.type] = data.type
-      }
-      if (data.surname != null) {
-        it[npcs.surname] = data.surname
-      }
-      if (data.energy != null) {
-        it[npcs.energy] = data.energy
-      }
-      if (data.max_life != null) {
-        it[npcs.max_life] = data.max_life
-      }
-      if (data.max_breath != null) {
-        it[npcs.max_breath] = data.max_breath
-      }
-      if (data.max_blood != null) {
-        it[npcs.max_blood] = data.max_blood
-      }
-      if (data.current_life != null) {
-        it[npcs.current_life] = data.current_life
-      }
-      if (data.current_breath != null) {
-        it[npcs.current_breath] = data.current_breath
-      }
-      if (data.current_blood != null) {
-        it[npcs.current_blood] = data.current_blood
-      }
-      if (data.icon != null) {
-        it[npcs.icon] = data.icon
-      }
-    };
-    return Npc(this.guild, payload.extend(data))
+  fun update(
+    name: String?,
+    type: NpcType?,
+    surname: String?,
+    energy: Int?,
+    maxLife: Long?,
+    maxBreath: Long?,
+    maxBlood: Long?,
+    currentLife: Long?,
+    currentBreath: Long?,
+    currentBlood: Long?,
+    icon: String?
+  ) : Npc {
+    NpcRepository.updateNpc(
+      guildId = this.guild.id,
+      id = this.id,
+      name = name,
+      type = type,
+      surname = surname,
+      energy = energy,
+      maxLife = maxLife,
+      maxBreath = maxBreath,
+      maxBlood = maxBlood,
+      currentLife = currentLife,
+      currentBreath = currentBreath,
+      currentBlood = currentBlood,
+      icon = icon
+    )
+    return Npc(
+      guild = this.guild,
+      id = this.id,
+      name = name ?: this.name,
+      type = type ?: this.type,
+      familyId = this.familyId,
+      surname = surname ?: this.surname,
+      energy = energy ?: this.energy,
+      maxLife = maxLife ?: this.maxLife,
+      maxBreath = maxBreath ?: this.maxBreath,
+      maxBlood = maxBlood ?: this.maxBlood,
+      currentLife = currentLife ?: this.currentLife,
+      currentBreath = currentBreath ?: this.currentBreath,
+      currentBlood = currentBlood ?: this.currentBlood,
+      icon = icon ?: this.icon
+    )
   }
   fun delete() : Npc {
-    npcs.deleteWhere {
-      (this.guild_id eq this@Npc.guild.id)
-        .and(this.id eq this@Npc.payload.id)
-    }
+    NpcRepository.deleteNpc(guildId = this.guild.id, id = this.id)
     return this
   }
 }

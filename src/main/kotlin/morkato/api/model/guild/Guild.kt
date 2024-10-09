@@ -1,21 +1,17 @@
 package morkato.api.model.guild
 
-import morkato.api.infra.repository.AbilityFamilyRepository
-import morkato.api.infra.repository.AbilityRepository
-import morkato.api.infra.repository.FamilyRepository
-import morkato.api.infra.repository.AttackRepository
-import morkato.api.infra.repository.GuildRepository
-import morkato.api.infra.repository.ArtRepository
 import morkato.api.exception.NotFoundError
 import morkato.api.exception.ModelType
+import morkato.api.infra.repository.*
 
 import morkato.api.model.ability.AbilityType
 import morkato.api.model.ability.Ability
 import morkato.api.model.family.Family
 import morkato.api.model.attack.Attack
+import morkato.api.model.npc.NpcType
+import morkato.api.model.npc.Npc
 import morkato.api.model.art.ArtType
 import morkato.api.model.art.Art
-import morkato.api.model.npc.NpcType
 
 import org.jetbrains.exposed.sql.ResultRow
 
@@ -206,78 +202,39 @@ class Guild(
   }
 
   fun getNpc(id: Long) : Npc {
-    try {
-      val row = npcs
-        .selectAll()
-        .where({
-          (npcs.guild_id eq this@Guild.id)
-            .and(npcs.id eq id)
-        })
-        .limit(1)
-        .single()
-      val payload = Npc.getPayload(row)
-      return Npc(this, payload)
-    } catch (exc: NoSuchElementException) {
-      val extra: Map<String, Any?> = mapOf(
-        "guild_id" to this.id,
-        "id" to id.toString()
-      )
-      throw NotFoundError(ModelType.FAMILY, extra)
-    }
+    val payload = NpcRepository.findById(this.id, id)
+    return Npc(this, payload)
   }
   fun getNpcBySurname(surname: String) : Npc {
-    try {
-      val row = npcs
-        .selectAll()
-        .where({
-          (npcs.guild_id eq this@Guild.id)
-            .and(npcs.surname eq surname)
-        })
-        .limit(1)
-        .single()
-      val payload = Npc.getPayload(row)
-      return Npc(this, payload)
-    } catch (exc: NoSuchElementException) {
-      val extra: Map<String, Any?> = mapOf(
-        "guild_id" to this.id,
-        "id" to id.toString()
-      )
-      throw NotFoundError(ModelType.FAMILY, extra)
-    }
+    val payload = NpcRepository.findBySurname(this, surname)
+    return Npc(this, payload)
   }
-  fun createNpc(data: NpcCreateData) : Npc {
-    val maxLife = when (data.type) {
-      NpcType.HUMAN -> this.human_initial_life
-      NpcType.ONI -> this.oni_initial_life
-      NpcType.HYBRID -> this.hybrid_initial_life
+  fun createNpc(
+    name: String,
+    type: NpcType,
+    familyId: Long,
+    surname: String,
+    energy: Int?,
+    icon: String?
+  ) : Npc {
+    val life = when (type) {
+      NpcType.HUMAN -> this.humanInitialLife
+      NpcType.ONI -> this.oniInitialLife
+      NpcType.HYBRID -> this.hybridInitialLife
     }
-    val maxBreath = this.breath_initial
-    val maxBlood = this.blood_initial
-    val id = npcs.insert {
-      it[this.guild_id] = this@Guild.id
-      it[this.name] = data.name
-      it[this.family_id] = data.family_id.toLong()
-      it[this.type] = data.type
-      it[this.surname] = data.surname
-      it[this.icon] = data.icon
-      it[this.max_life] = maxLife
-      it[this.max_breath] = maxBreath
-      it[this.max_blood] = maxBlood
-    } get npcs.id
-    val payload = NpcPayload(
-      this.id, id,
-      name = data.name,
-      type = data.type,
-      familyId = data.family_id.toLong(),
-      surname = data.surname,
-      energy = 100,
-      maxLife = maxLife,
-      maxBreath = maxBreath,
-      maxBlood = maxBlood,
-      currentLife = maxLife,
-      currentBreath = maxBreath,
-      currentBlood = maxBlood,
-      icon = data.icon
+    val breath = this.breathInitial
+    val blood = this.bloodInitial
+    val payload = NpcRepository.createNpc(
+      guildId = this.id,
+      name = name,
+      type = type,
+      familyId = familyId,
+      surname = surname,
+      energy = energy,
+      life = life,
+      breath = breath,
+      blood = blood,
+      icon = icon
     )
     return Npc(this, payload)
   }

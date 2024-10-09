@@ -9,15 +9,17 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.GetMapping
-
-import morkato.api.database.foreign.AbilityNpc
-import morkato.api.database.npc.NpcUpdateData
-import morkato.api.database.npc.NpcCreateData
-import morkato.api.database.guild.Guild
-
-import morkato.api.response.data.NpcResponseData
-import morkato.api.dto.validation.IdSchema
 import jakarta.validation.Valid
+
+import morkato.api.infra.repository.NpcAbilityRepository
+import morkato.api.infra.repository.GuildRepository
+import morkato.api.exception.model.GuildNotFoundError
+import morkato.api.exception.model.NpcNotFoundError
+import morkato.api.dto.validation.IdSchema
+import morkato.api.dto.npc.NpcResponseData
+import morkato.api.dto.npc.NpcCreateData
+import morkato.api.dto.npc.NpcUpdateData
+import morkato.api.model.guild.Guild
 
 @RestController
 @RequestMapping("/npcs/{guild_id}")
@@ -28,16 +30,22 @@ class NpcController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @PathVariable("id") id: String
   ) : NpcResponseData {
-    val guild = Guild.getRefOrCreate(guild_id)
-    val npc = if ("^[0-9]{15,30}$".toRegex().containsMatchIn(id))
-      guild.getNpc(id.toLong())
-    else guild.getNpcBySurname(id)
-    val abilities = npc.getAllAbilities()
-      .asSequence()
-      .map(AbilityNpc::abilityId)
-      .map(Long::toString)
-      .toList()
-    return NpcResponseData.from(npc, abilities)
+    return try {
+      val guild = Guild(GuildRepository.findById(guild_id))
+      val npc = if ("^[0-9]{15,30}$".toRegex().containsMatchIn(id))
+        guild.getNpc(id.toLong())
+      else guild.getNpcBySurname(id)
+      val abilities = npc.getAllAbilities()
+        .map(NpcAbilityRepository.NpcAbilityPayload::abilityId)
+        .map(Long::toString)
+        .toList()
+      NpcResponseData(npc, abilities)
+    } catch (exc: GuildNotFoundError) {
+      val extra: MutableMap<String, Any?> = mutableMapOf()
+      extra["guild_id"] = guild_id
+      extra["id"] = id
+      throw NpcNotFoundError(extra)
+    }
   }
   @PostMapping
   @Transactional
@@ -45,9 +53,16 @@ class NpcController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @RequestBody @Valid data: NpcCreateData
   ) : NpcResponseData {
-    val guild = Guild.getRefOrCreate(guild_id)
-    val npc = guild.createNpc(data)
-    return NpcResponseData.from(npc, listOf<String>())
+    val guild = Guild(GuildRepository.findByIdOrCreate(guild_id))
+    val npc = guild.createNpc(
+      name = data.name,
+      type = data.type,
+      familyId = data.family_id.toLong(),
+      surname = data.surname,
+      energy = null,
+      icon = data.icon
+    )
+    return NpcResponseData(npc, listOf())
   }
   @PutMapping("/{id}")
   @Transactional
@@ -56,30 +71,54 @@ class NpcController {
     @PathVariable("id") @IdSchema id: String,
     @RequestBody @Valid data: NpcUpdateData
   ) : NpcResponseData {
-    val guild = Guild.getRefOrCreate(guild_id)
-    val before = guild.getNpc(id.toLong())
-    val npc = before.update(data)
-    val abilities = npc.getAllAbilities()
-      .asSequence()
-      .map(AbilityNpc::abilityId)
-      .map(Long::toString)
-      .toList()
-    return NpcResponseData.from(npc, abilities)
+    return try {
+      val guild = Guild(GuildRepository.findById(guild_id))
+      val before = guild.getNpc(id.toLong())
+      val npc = before.update(
+        name = data.name,
+        type = data.type,
+        surname = data.surname,
+        energy = data.energy,
+        maxLife = data.max_life,
+        maxBreath = data.max_breath,
+        maxBlood = data.max_blood,
+        currentLife = data.current_life,
+        currentBreath = data.current_breath,
+        currentBlood = data.current_blood,
+        icon = data.icon
+      )
+      val abilities = npc.getAllAbilities()
+        .map(NpcAbilityRepository.NpcAbilityPayload::abilityId)
+        .map(Long::toString)
+        .toList()
+      NpcResponseData(npc, abilities)
+    } catch (exc: GuildNotFoundError) {
+      val extra: MutableMap<String, Any?> = mutableMapOf()
+      extra["guild_id"] = guild_id
+      extra["id"] = id
+      throw NpcNotFoundError(extra)
+    }
   }
   @DeleteMapping("/{id}")
   @Transactional
   fun deleteNpcByReference(
     @PathVariable("guild_id") @IdSchema guild_id: String,
-    @PathVariable("id") @IdSchema id: String,
+    @PathVariable("id") @IdSchema id: String
   ) : NpcResponseData {
-    val guild = Guild.getRefOrCreate(guild_id)
-    val npc = guild.getNpc(id.toLong())
-    val abilities = npc.getAllAbilities()
-      .asSequence()
-      .map(AbilityNpc::abilityId)
-      .map(Long::toString)
-      .toList()
-    npc.delete()
-    return NpcResponseData.from(npc, abilities)
+    return try {
+      val guild = Guild(GuildRepository.findById(guild_id))
+      val npc = guild.getNpc(id.toLong())
+      val abilities = npc.getAllAbilities()
+        .map(NpcAbilityRepository.NpcAbilityPayload::abilityId)
+        .map(Long::toString)
+        .toList()
+      npc.delete()
+      NpcResponseData(npc, abilities)
+    } catch (exc: GuildNotFoundError) {
+      val extra: MutableMap<String, Any?> = mutableMapOf()
+      extra["guild_id"] = guild_id
+      extra["id"] = id
+      throw NpcNotFoundError(extra)
+    }
   }
 }
