@@ -50,12 +50,16 @@ class ArtController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @RequestBody @Valid data: ArtCreateData
   ) : ArtResponseData {
-    val guild = Guild(GuildRepository.findById(guild_id))
+    val guild = Guild(GuildRepository.findByIdOrCreate(guild_id))
     val art = guild.createArt(
       name = data.name,
       type = data.type,
       description = data.description,
-      banner = data.banner
+      banner = data.banner,
+      energy = data.energy,
+      life = data.life,
+      breath = data.breath,
+      blood = data.blood
     )
     return ArtResponseData(art, listOf())
   }
@@ -91,7 +95,11 @@ class ArtController {
         name = data.name,
         type = data.type,
         description = data.description,
-        banner = data.banner
+        banner = data.banner,
+        energy = data.energy,
+        life = data.life,
+        breath = data.breath,
+        blood = data.blood
       )
       val attacks = art.getAllAttacks()
       ArtResponseData(art, attacks.map(::ArtAttackResponseData).toList())

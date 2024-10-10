@@ -121,14 +121,22 @@ class Guild(
     name: String,
     type: ArtType,
     description: String?,
-    banner: String?
+    banner: String?,
+    energy: Int?,
+    life: Long?,
+    breath: Long?,
+    blood: Long?
   ) : Art {
     val payload = ArtRepository.createArt(
       guildId = this.id,
       name = name,
       type = type,
       description = description,
-      banner = banner
+      banner = banner,
+      energy = energy,
+      life = life,
+      breath = breath,
+      blood = blood
     )
     return Art(this, payload)
   }

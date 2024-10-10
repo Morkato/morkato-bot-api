@@ -10,6 +10,10 @@ data class ArtResponseData(
   val type: ArtType,
   val description: String?,
   val banner: String?,
+  val energy: Int,
+  val life: Long,
+  val breath: Long,
+  val blood: Long,
   val attacks: List<ArtAttackResponseData>
 ) {
   public constructor(art: Art, attacks: List<ArtAttackResponseData>) : this(
@@ -19,6 +23,10 @@ data class ArtResponseData(
     art.type,
     art.description,
     art.banner,
+    art.energy,
+    art.life,
+    art.breath,
+    art.blood,
     attacks
   ) {}
 }

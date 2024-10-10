@@ -19,7 +19,11 @@ object ArtRepository {
     val name: String,
     val type: ArtType,
     val description: String?,
-    val banner: String?
+    val banner: String?,
+    val energy: Int,
+    val life: Long,
+    val breath: Long,
+    val blood: Long
   ) {
     public constructor(row: ResultRow) : this(
       row[arts.guild_id],
@@ -27,8 +31,16 @@ object ArtRepository {
       row[arts.name],
       row[arts.type],
       row[arts.description],
-      row[arts.banner]
+      row[arts.banner],
+      row[arts.energy],
+      row[arts.life],
+      row[arts.breath],
+      row[arts.blood]
     ) {}
+  }
+  private object DefaultValue {
+    const val energy: Int = 25
+    const val attr: Long = 1
   }
   fun findAllByGuildId(id: String) : Sequence<ArtPayload> {
     return arts
@@ -63,7 +75,11 @@ object ArtRepository {
     name: String,
     type: ArtType,
     description: String?,
-    banner: String?
+    banner: String?,
+    energy: Int?,
+    life: Long?,
+    breath: Long?,
+    blood: Long?
   ) : ArtPayload {
     val id = arts.insert {
       it[this.guild_id] = guildId
@@ -71,6 +87,18 @@ object ArtRepository {
       it[this.type] = type
       it[this.description] = description
       it[this.banner] = banner
+      if (energy != null) {
+        it[this.energy] = energy
+      }
+      if (life != null) {
+        it[this.life] = life
+      }
+      if (breath != null) {
+        it[this.breath] = breath
+      }
+      if (blood != null) {
+        it[this.blood] = blood
+      }
     } get arts.id
     return ArtPayload(
       guildId = guildId,
@@ -78,7 +106,11 @@ object ArtRepository {
       name = name,
       type = type,
       description = description,
-      banner = banner
+      banner = banner,
+      energy = energy ?: DefaultValue.energy,
+      life = life ?: DefaultValue.attr,
+      breath = breath ?: DefaultValue.attr,
+      blood = blood ?: DefaultValue.attr
     )
   }
   fun updateArt(
@@ -87,7 +119,11 @@ object ArtRepository {
     name: String?,
     type: ArtType?,
     description: String?,
-    banner: String?
+    banner: String?,
+    energy: Int?,
+    life: Long?,
+    breath: Long?,
+    blood: Long?
   ) : Unit {
     arts.update({
       (arts.guild_id eq guildId)
@@ -104,6 +140,18 @@ object ArtRepository {
       }
       if (banner != null) {
         it[this.banner] = banner
+      }
+      if (energy != null) {
+        it[this.energy] = energy
+      }
+      if (life != null) {
+        it[this.life] = life
+      }
+      if (breath != null) {
+        it[this.breath] = breath
+      }
+      if (blood != null) {
+        it[this.blood] = blood
       }
     }
   }

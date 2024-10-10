@@ -13,7 +13,11 @@ class Art(
   val name: String,
   val type: ArtType,
   val description: String?,
-  val banner: String?
+  val banner: String?,
+  val energy: Int,
+  val life: Long,
+  val breath: Long,
+  val blood: Long
 ) {
   public constructor(guild: Guild, row: ResultRow) : this(guild, ArtRepository.ArtPayload(row)) {}
   public  constructor(guild: Guild, payload: ArtRepository.ArtPayload) : this(
@@ -22,7 +26,11 @@ class Art(
     payload.name,
     payload.type,
     payload.description,
-    payload.banner
+    payload.banner,
+    payload.energy,
+    payload.life,
+    payload.breath,
+    payload.blood
   ) {}
   fun getAllAttacks() : Sequence<Attack> {
     return AttackRepository.findAllByGuildIdAndArtId(this.guild.id, this.id)
@@ -56,7 +64,11 @@ class Art(
     name: String? = null,
     type: ArtType? = null,
     description: String? = null,
-    banner: String? = null
+    banner: String? = null,
+    energy: Int? = null,
+    life: Long? = null,
+    breath: Long? = null,
+    blood: Long? = null
   ) : Art {
     val payload = ArtRepository.ArtPayload(
       guildId = this.guild.id,
@@ -64,7 +76,11 @@ class Art(
       name = name ?: this.name,
       type = type ?: this.type,
       description = description ?: this.description,
-      banner = banner ?: this.banner
+      banner = banner ?: this.banner,
+      energy = energy ?: this.energy,
+      life = life ?: this.life,
+      breath = breath ?: this.breath,
+      blood = blood ?: this.blood
     )
     ArtRepository.updateArt(
       guildId = this.guild.id,
@@ -72,7 +88,11 @@ class Art(
       name = name,
       type = type,
       description = description,
-      banner = banner
+      banner = banner,
+      energy = energy,
+      life = life,
+      breath = breath,
+      blood = blood
     )
     return Art(this.guild, payload)
   }
