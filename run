@@ -1,0 +1,2 @@
+#!/usr/bin/bash
+DATABASE_URL=jdbc:postgresql://localhost:8080/morkato DATASOURCE_USERNAME=morkato DATASOURCE_PASSWORD=morkato java -Dspring.profiles.active=prod -jar build/libs/api-0.0.1.jar
