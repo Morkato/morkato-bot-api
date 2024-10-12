@@ -13,6 +13,8 @@ object npcs : Table("npcs") {
   val player_id = reference("player_id", players.id).nullable()
   val surname = varchar("surname", length = 32)
   val energy = integer("energy")
+  val prodigy = bool("prodigy")
+  val mark = bool("mark")
   val max_life = long("max_life")
   val max_breath = long("max_breath")
   val max_blood = long("max_blood")

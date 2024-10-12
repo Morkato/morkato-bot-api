@@ -57,6 +57,8 @@ class Player(
       type = this.expectedNpcType,
       familyId = familyId,
       energy = null,
+      prodigy = this.isProdigy,
+      mark = this.hasMark,
       icon = icon
     )
     for (id in abilities) {

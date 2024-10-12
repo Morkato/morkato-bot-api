@@ -60,6 +60,8 @@ class NpcController {
       familyId = data.family_id.toLong(),
       surname = data.surname,
       energy = null,
+      prodigy = data.prodigy,
+      mark = data.mark,
       icon = data.icon
     )
     return NpcResponseData(npc, listOf())
@@ -79,6 +81,8 @@ class NpcController {
         type = data.type,
         surname = data.surname,
         energy = data.energy,
+        prodigy = data.prodigy,
+        mark = data.mark,
         maxLife = data.max_life,
         maxBreath = data.max_breath,
         maxBlood = data.max_blood,

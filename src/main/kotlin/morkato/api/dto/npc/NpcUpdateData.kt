@@ -11,6 +11,8 @@ data class NpcUpdateData(
   @KeySchema val surname: String?,
   val type: NpcType?,
   val energy: Int?,
+  val prodigy: Boolean?,
+  val mark: Boolean?,
   @AttrSchema val max_life: Long?,
   @AttrSchema val max_breath: Long?,
   @AttrSchema val max_blood: Long?,

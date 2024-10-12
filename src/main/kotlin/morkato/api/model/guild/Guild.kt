@@ -225,6 +225,8 @@ class Guild(
     familyId: Long,
     surname: String,
     energy: Int?,
+    prodigy: Boolean?,
+    mark: Boolean?,
     icon: String?
   ) : Npc {
     val life = when (type) {
@@ -242,6 +244,8 @@ class Guild(
       familyId = familyId,
       surname = surname,
       energy = energy,
+      prodigy = prodigy,
+      mark = mark,
       life = life,
       breath = breath,
       blood = blood,

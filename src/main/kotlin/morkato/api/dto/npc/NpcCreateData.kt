@@ -12,5 +12,7 @@ data class NpcCreateData(
   @IdSchema @NotNull val family_id: String,
   @NotNull @KeySchema val surname: String,
   @NotNull val type: NpcType,
+  val prodigy: Boolean?,
+  val mark: Boolean?,
   @BannerSchema val icon: String?
 );

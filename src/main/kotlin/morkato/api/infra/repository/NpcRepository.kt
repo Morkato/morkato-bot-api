@@ -21,6 +21,8 @@ object NpcRepository {
     val familyId: Long,
     val surname: String,
     val energy: Int,
+    val prodigy: Boolean,
+    val mark: Boolean,
     val maxLife: Long,
     val maxBreath: Long,
     val maxBlood: Long,
@@ -37,6 +39,8 @@ object NpcRepository {
       row[npcs.family_id],
       row[npcs.surname],
       row[npcs.energy],
+      row[npcs.prodigy],
+      row[npcs.mark],
       row[npcs.max_life],
       row[npcs.max_breath],
       row[npcs.max_blood],
@@ -117,6 +121,8 @@ object NpcRepository {
     familyId: Long,
     surname: String,
     energy: Int?,
+    prodigy: Boolean?,
+    mark: Boolean?,
     life: Long?,
     breath: Long?,
     blood: Long?,
@@ -134,6 +140,12 @@ object NpcRepository {
       }
       if (energy != null) {
         it[this.energy] = energy
+      }
+      if (prodigy != null) {
+        it[this.prodigy] = prodigy
+      }
+      if (mark != null) {
+        it[this.mark] = mark
       }
       if (life != null) {
         it[this.max_life] = life
@@ -156,6 +168,8 @@ object NpcRepository {
       familyId = familyId,
       surname = surname,
       energy = energy ?: DefaultValue.energy,
+      prodigy = prodigy ?: DefaultValue.prodigy,
+      mark = mark ?: DefaultValue.mark,
       maxLife = life ?: DefaultValue.attr,
       maxBreath = breath ?: DefaultValue.attr,
       maxBlood = blood ?: DefaultValue.attr,
@@ -172,6 +186,8 @@ object NpcRepository {
     type: NpcType?,
     surname: String?,
     energy: Int?,
+    prodigy: Boolean?,
+    mark: Boolean?,
     maxLife: Long?,
     maxBreath: Long?,
     maxBlood: Long?,
@@ -195,6 +211,12 @@ object NpcRepository {
       }
       if (energy != null) {
         it[this.energy] = energy
+      }
+      if (prodigy != null) {
+        it[this.prodigy] = prodigy
+      }
+      if (mark != null) {
+        it[this.mark] = mark
       }
       if (maxLife != null) {
         it[this.max_life] = maxLife
