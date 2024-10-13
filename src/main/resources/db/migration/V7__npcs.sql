@@ -2,6 +2,9 @@
 -- "surname" COLUMN IN TABLE "npcs" THE TYPE WILL BE REPLACED BY NEW DOMAIN "surname_type" (AVAILABLE IN VERSION 7.0).
 -- "guild_id" COLUMN IN TABLE "npcs" WILL BE ADDED (AVAILABLE IN VERSION 7.0).
 -- "npc_ability.family" CONSTRAINT INTO "npcs" IS RENAMED TO "npc_ability.npc" IN VERSION 10.0!
+-- "flags" COLUMN IS ADDED INTO TABLE "npcs" IN VERSION 11.0!
+-- "prodigy" COLUMN IS DELETED INTO TABLE "npcs" IN VERSION 11.0!
+-- "mark" COLUMN IS DELETED INTO TABLE "npcs" IN VERSION 11.0!
 CREATE SEQUENCE "npc_snowflake_seq";
 CREATE TABLE "npcs" (
   "name" name_type NOT NULL,

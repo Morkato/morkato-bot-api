@@ -1,3 +1,6 @@
+-- "flags" COLUMN IS ADDED INTO TABLE "players" IN VERSION 11.0!
+-- "is_prodigy" COLUMN IS DELETED INTO TABLE "players" IN VERSION 11.0!
+-- "has_mark" COLUMN IS DELETED INTO TABLE "players" IN VERSION 11.0!
 CREATE TABLE "players" (
   "guild_id" discord_id_type NOT NULL,
   "id" discord_id_type NOT NULL,
