@@ -21,8 +21,7 @@ object NpcRepository {
     val familyId: Long,
     val surname: String,
     val energy: Int,
-    val prodigy: Boolean,
-    val mark: Boolean,
+    val flags: Int,
     val maxLife: Long,
     val maxBreath: Long,
     val maxBlood: Long,
@@ -39,8 +38,7 @@ object NpcRepository {
       row[npcs.family_id],
       row[npcs.surname],
       row[npcs.energy],
-      row[npcs.prodigy],
-      row[npcs.mark],
+      row[npcs.flags],
       row[npcs.max_life],
       row[npcs.max_breath],
       row[npcs.max_blood],
@@ -52,8 +50,7 @@ object NpcRepository {
   }
   private object DefaultValue {
     const val energy: Int = 100
-    const val mark: Boolean = false
-    const val prodigy: Boolean = false
+    const val flags: Int = 0
     const val attr: Long = 0
   }
   fun findById(guildId: String, id: Long) : NpcPayload {
@@ -121,8 +118,7 @@ object NpcRepository {
     familyId: Long,
     surname: String,
     energy: Int?,
-    prodigy: Boolean?,
-    mark: Boolean?,
+    flags: Int?,
     life: Long?,
     breath: Long?,
     blood: Long?,
@@ -141,11 +137,8 @@ object NpcRepository {
       if (energy != null) {
         it[this.energy] = energy
       }
-      if (prodigy != null) {
-        it[this.prodigy] = prodigy
-      }
-      if (mark != null) {
-        it[this.mark] = mark
+      if (flags != null) {
+        it[this.flags] = flags
       }
       if (life != null) {
         it[this.max_life] = life
@@ -168,8 +161,7 @@ object NpcRepository {
       familyId = familyId,
       surname = surname,
       energy = energy ?: DefaultValue.energy,
-      prodigy = prodigy ?: DefaultValue.prodigy,
-      mark = mark ?: DefaultValue.mark,
+      flags = flags ?: DefaultValue.flags,
       maxLife = life ?: DefaultValue.attr,
       maxBreath = breath ?: DefaultValue.attr,
       maxBlood = blood ?: DefaultValue.attr,
@@ -186,8 +178,7 @@ object NpcRepository {
     type: NpcType?,
     surname: String?,
     energy: Int?,
-    prodigy: Boolean?,
-    mark: Boolean?,
+    flags: Int?,
     maxLife: Long?,
     maxBreath: Long?,
     maxBlood: Long?,
@@ -212,11 +203,8 @@ object NpcRepository {
       if (energy != null) {
         it[this.energy] = energy
       }
-      if (prodigy != null) {
-        it[this.prodigy] = prodigy
-      }
-      if (mark != null) {
-        it[this.mark] = mark
+      if (flags != null) {
+        it[this.flags] = flags
       }
       if (maxLife != null) {
         it[this.max_life] = maxLife

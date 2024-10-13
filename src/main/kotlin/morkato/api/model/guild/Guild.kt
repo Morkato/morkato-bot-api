@@ -225,8 +225,7 @@ class Guild(
     familyId: Long,
     surname: String,
     energy: Int?,
-    prodigy: Boolean?,
-    mark: Boolean?,
+    flags: Int?,
     icon: String?
   ) : Npc {
     val life = when (type) {
@@ -244,8 +243,7 @@ class Guild(
       familyId = familyId,
       surname = surname,
       energy = energy,
-      prodigy = prodigy,
-      mark = mark,
+      flags = flags,
       life = life,
       breath = breath,
       blood = blood,
@@ -263,8 +261,10 @@ class Guild(
     expectedNpcType: NpcType,
     abilityRoll: Int?,
     familyRoll: Int?,
-    isProdigy: Boolean?,
-    hasMark: Boolean?,
+    prodigyRoll: Int?,
+    markRoll: Int?,
+    berserkRoll: Int?,
+    flags: Int?,
     expectedFamilyId: Long?
   ) : Player {
     val thisAbilityRoll = abilityRoll ?: this@Guild.abilityRoll
@@ -273,8 +273,10 @@ class Guild(
       this.id, id,
       abilityRoll = thisAbilityRoll,
       familyRoll = thisFamilyRoll,
-      isProdigy = isProdigy,
-      hasMark = hasMark,
+      prodigyRoll = prodigyRoll,
+      markRoll = markRoll,
+      berserkRoll = berserkRoll,
+      flags = flags,
       expectedFamilyId = expectedFamilyId,
       expectedNpcType = expectedNpcType
     )

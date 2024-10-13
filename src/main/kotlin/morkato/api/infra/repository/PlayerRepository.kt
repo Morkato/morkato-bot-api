@@ -18,8 +18,10 @@ object PlayerRepository {
     val id: String,
     val abilityRoll: Int,
     val familyRoll: Int,
-    val isProdigy: Boolean,
-    val hasMark: Boolean,
+    val prodigyRoll: Int,
+    val markRoll: Int,
+    val berserkRoll: Int,
+    val flags: Int,
     val expectedFamilyId: Long?,
     val expectedNpcType: NpcType
   ) {
@@ -28,8 +30,10 @@ object PlayerRepository {
       row[players.id],
       row[players.ability_roll],
       row[players.family_roll],
-      row[players.is_prodigy],
-      row[players.has_mark],
+      row[players.prodigy_roll],
+      row[players.mark_roll],
+      row[players.berserk_roll],
+      row[players.flags],
       row[players.expected_family_id],
       row[players.expected_npc_kind]
     );
@@ -37,8 +41,8 @@ object PlayerRepository {
   private object DefaultValue {
     const val familyRoll: Int = 3
     const val abilityRoll: Int = 3
-    const val isPridigy: Boolean = false
-    const val hasMark: Boolean = false
+    const val roll: Int = 1
+    const val flags: Int = 0
   }
   fun findById(guildId: String, id: String) : PlayerPayload {
     return try {
@@ -65,8 +69,10 @@ object PlayerRepository {
     expectedNpcType: NpcType,
     abilityRoll: Int?,
     familyRoll: Int?,
-    isProdigy: Boolean?,
-    hasMark: Boolean?,
+    prodigyRoll: Int?,
+    markRoll: Int?,
+    berserkRoll: Int?,
+    flags: Int?,
     expectedFamilyId: Long?
   ) : PlayerPayload {
     players.insert {
@@ -79,11 +85,17 @@ object PlayerRepository {
       if (familyRoll != null) {
         it[this.family_roll] = familyRoll
       }
-      if (isProdigy != null) {
-        it[this.is_prodigy] = isProdigy
+      if (prodigyRoll != null) {
+        it[this.prodigy_roll] = prodigyRoll
       }
-      if (hasMark != null) {
-        it[this.has_mark] = hasMark
+      if (markRoll != null) {
+        it[this.mark_roll] = markRoll
+      }
+      if (berserkRoll != null) {
+        it[this.berserk_roll] = berserkRoll
+      }
+      if (flags != null) {
+        it[this.flags] = flags
       }
       if (expectedFamilyId != null) {
         it[this.expected_family_id] = expectedFamilyId
@@ -96,8 +108,10 @@ object PlayerRepository {
       expectedFamilyId = expectedFamilyId,
       abilityRoll = abilityRoll ?: DefaultValue.abilityRoll,
       familyRoll = familyRoll ?: DefaultValue.familyRoll,
-      isProdigy = isProdigy ?: DefaultValue.isPridigy,
-      hasMark = hasMark ?: DefaultValue.hasMark
+      prodigyRoll = prodigyRoll ?: DefaultValue.roll,
+      markRoll = markRoll ?: DefaultValue.roll,
+      berserkRoll = berserkRoll ?: DefaultValue.roll,
+      flags = flags ?: DefaultValue.flags
     )
   }
   fun updatePlayer(
@@ -106,8 +120,10 @@ object PlayerRepository {
     expectedFamilyId: Long?,
     abilityRoll: Int?,
     familyRoll: Int?,
-    isProdigy: Boolean?,
-    hasMark: Boolean?
+    prodigyRoll: Int?,
+    markRoll: Int?,
+    berserkRoll: Int?,
+    flags: Int?,
   ) : Unit {
     players.update({
       (players.guild_id eq guildId)
@@ -119,11 +135,17 @@ object PlayerRepository {
       if (familyRoll != null) {
         it[this.family_roll] = familyRoll
       }
-      if (isProdigy != null) {
-        it[this.is_prodigy] = isProdigy
+      if (prodigyRoll != null) {
+        it[this.prodigy_roll] = prodigyRoll
       }
-      if (hasMark != null) {
-        it[this.has_mark] = hasMark
+      if (markRoll != null) {
+        it[this.mark_roll] = markRoll
+      }
+      if (berserkRoll != null) {
+        it[this.berserk_roll] = berserkRoll
+      }
+      if (flags != null) {
+        it[this.flags] = flags
       }
       if (expectedFamilyId != null) {
         it[this.expected_family_id] = expectedFamilyId
@@ -135,6 +157,5 @@ object PlayerRepository {
       (this.guild_id eq guildId)
         .and(this.id eq id)
     }
-    Unit
   }
 }

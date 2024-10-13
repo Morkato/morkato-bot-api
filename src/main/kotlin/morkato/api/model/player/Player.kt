@@ -19,8 +19,10 @@ class Player(
   val expectedFamilyId: Long?,
   val abilityRoll: Int,
   val familyRoll: Int,
-  val isProdigy: Boolean,
-  val hasMark: Boolean
+  val prodigyRoll: Int,
+  val markRoll: Int,
+  val berserkRoll: Int,
+  val flags: Int,
 ) {
   public constructor(guild: Guild, row: ResultRow) : this(guild, PlayerRepository.PlayerPayload(row));
   public constructor(guild: Guild, payload: PlayerRepository.PlayerPayload) : this(
@@ -30,8 +32,10 @@ class Player(
     payload.expectedFamilyId,
     payload.abilityRoll,
     payload.familyRoll,
-    payload.isProdigy,
-    payload.hasMark
+    payload.prodigyRoll,
+    payload.markRoll,
+    payload.berserkRoll,
+    payload.flags
   );
   fun getReferredNpc() : Npc? {
     try {
@@ -57,8 +61,7 @@ class Player(
       type = this.expectedNpcType,
       familyId = familyId,
       energy = null,
-      prodigy = this.isProdigy,
-      mark = this.hasMark,
+      flags = this.flags,
       icon = icon
     )
     for (id in abilities) {
@@ -90,17 +93,21 @@ class Player(
     familyId: Long? = null,
     abilityRoll: Int? = null,
     familyRoll: Int? = null,
-    isProdigy: Boolean? = null,
-    hasMark: Boolean? = null
+    prodigyRoll: Int? = null,
+    markRoll: Int? = null,
+    berserkRoll: Int? = null,
+    flags: Int? = null
   ) : Player {
-    val payload = PlayerRepository.updatePlayer(
+    PlayerRepository.updatePlayer(
       guildId = this.guild.id,
       id = this.id,
       expectedFamilyId = familyId,
       abilityRoll = abilityRoll,
       familyRoll = familyRoll,
-      isProdigy = isProdigy,
-      hasMark = hasMark
+      prodigyRoll = prodigyRoll,
+      markRoll = markRoll,
+      berserkRoll = berserkRoll,
+      flags = flags
     )
     return Player(
       guild = this.guild,
@@ -109,8 +116,10 @@ class Player(
       expectedFamilyId = this.expectedFamilyId ?: familyId,
       abilityRoll = abilityRoll ?: this.abilityRoll,
       familyRoll = familyRoll ?: this.familyRoll,
-      isProdigy = isProdigy ?: this.isProdigy,
-      hasMark = hasMark ?: this.hasMark
+      prodigyRoll = prodigyRoll ?: this.prodigyRoll,
+      markRoll = markRoll ?: this.markRoll,
+      berserkRoll = berserkRoll ?: this.berserkRoll,
+      flags = flags ?: this.flags
     )
   }
 

@@ -8,8 +8,10 @@ object players : Table("players") {
 
   val ability_roll = integer("ability_roll")
   val family_roll = integer("family_roll")
-  val is_prodigy = bool("is_prodigy")
-  val has_mark = bool("has_mark")
+  val prodigy_roll = integer("prodigy_roll")
+  val mark_roll = integer("mark_roll")
+  val berserk_roll = integer("berserk_roll")
+  val flags = integer("flags")
   val expected_family_id = reference("expected_family_id", families.id)
   val expected_npc_kind = reference("expected_npc_kind", npcs.type)
 
