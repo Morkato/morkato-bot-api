@@ -1,6 +1,7 @@
 package morkato.api.model.npc
 
 import morkato.api.infra.repository.NpcAbilityRepository
+import morkato.api.infra.repository.NpcArtRepository
 import morkato.api.infra.repository.NpcRepository
 import morkato.api.model.guild.Guild
 
@@ -44,8 +45,14 @@ class Npc(
   fun getAllAbilities() : Sequence<NpcAbilityRepository.NpcAbilityPayload> {
     return NpcAbilityRepository.findAllByGuildIdAndNpcId(this.guild.id, this.id)
   }
+  fun getAllArts() : Sequence<NpcArtRepository.NpcArtPayload> {
+    return NpcArtRepository.getAllByGuildIdAndNpcId(this.guild.id, this.id)
+  }
   fun addAbility(id: Long) : NpcAbilityRepository.NpcAbilityPayload {
     return NpcAbilityRepository.createNpcAbility(this.guild.id, this.id, id)
+  }
+  fun addArt(id: Long, exp: Long) : NpcArtRepository.NpcArtPayload {
+    return NpcArtRepository.createOrUpdateNpcArt(this.guild.id, this.id, id, exp)
   }
 
   fun update(

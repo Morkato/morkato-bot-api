@@ -1,7 +1,5 @@
 package morkato.api.model.guild
 
-import morkato.api.exception.NotFoundError
-import morkato.api.exception.ModelType
 import morkato.api.infra.repository.*
 
 import morkato.api.model.ability.AbilityType
@@ -15,37 +13,6 @@ import morkato.api.model.art.ArtType
 import morkato.api.model.art.Art
 
 import org.jetbrains.exposed.sql.ResultRow
-
-//import morkato.api.database.ability.AbilityCreateData
-//import morkato.api.database.ability.AbilityPayload
-//import morkato.api.database.ability.Ability
-//
-//import morkato.api.database.tables.abilities_families
-//import morkato.api.database.tables.abilities
-//import morkato.api.database.tables.families
-//import morkato.api.database.tables.players
-//import morkato.api.database.tables.attacks
-//import morkato.api.database.tables.arts
-//import morkato.api.database.tables.npcs
-//
-//import morkato.api.database.art.ArtCreateData
-//import morkato.api.database.art.ArtPayload
-//
-//import morkato.api.database.foreign.AbilityFamily
-//import morkato.api.database.attack.Attack
-//
-//import morkato.api.database.family.FamilyCreateData
-//import morkato.api.database.family.FamilyPayload
-//import morkato.api.database.family.Family
-//
-//import morkato.api.database.npc.NpcCreateData
-//import morkato.api.database.npc.NpcPayload
-//import morkato.api.database.npc.NpcType
-//import morkato.api.database.npc.Npc
-//
-//import morkato.api.database.player.PlayerCreateData
-//import morkato.api.database.player.PlayerPayload
-//import morkato.api.database.player.Player
 
 class Guild(
   val id: String,

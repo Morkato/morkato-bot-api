@@ -16,6 +16,7 @@ import morkato.api.infra.repository.GuildRepository
 import morkato.api.exception.model.GuildNotFoundError
 import morkato.api.exception.model.NpcNotFoundError
 import morkato.api.dto.validation.IdSchema
+import morkato.api.dto.npc.NpcArtUpdateData
 import morkato.api.dto.npc.NpcResponseData
 import morkato.api.dto.npc.NpcCreateData
 import morkato.api.dto.npc.NpcUpdateData
@@ -39,7 +40,10 @@ class NpcController {
         .map(NpcAbilityRepository.NpcAbilityPayload::abilityId)
         .map(Long::toString)
         .toList()
-      NpcResponseData(npc, abilities)
+      val arts = npc.getAllArts()
+        .map { it.artId.toString() to it.exp }
+        .toMap()
+      NpcResponseData(npc, abilities, arts)
     } catch (exc: GuildNotFoundError) {
       val extra: MutableMap<String, Any?> = mutableMapOf()
       extra["guild_id"] = guild_id
@@ -60,11 +64,10 @@ class NpcController {
       familyId = data.family_id.toLong(),
       surname = data.surname,
       energy = null,
-      prodigy = data.prodigy,
-      mark = data.mark,
+      flags = data.flags,
       icon = data.icon
     )
-    return NpcResponseData(npc, listOf())
+    return NpcResponseData(npc, listOf(), mapOf())
   }
   @PutMapping("/{id}")
   @Transactional
@@ -81,8 +84,7 @@ class NpcController {
         type = data.type,
         surname = data.surname,
         energy = data.energy,
-        prodigy = data.prodigy,
-        mark = data.mark,
+        flags = data.flags,
         maxLife = data.max_life,
         maxBreath = data.max_breath,
         maxBlood = data.max_blood,
@@ -95,7 +97,10 @@ class NpcController {
         .map(NpcAbilityRepository.NpcAbilityPayload::abilityId)
         .map(Long::toString)
         .toList()
-      NpcResponseData(npc, abilities)
+      val arts = npc.getAllArts()
+        .map { it.artId.toString() to it.exp }
+        .toMap()
+      NpcResponseData(npc, abilities, arts)
     } catch (exc: GuildNotFoundError) {
       val extra: MutableMap<String, Any?> = mutableMapOf()
       extra["guild_id"] = guild_id
@@ -116,8 +121,30 @@ class NpcController {
         .map(NpcAbilityRepository.NpcAbilityPayload::abilityId)
         .map(Long::toString)
         .toList()
+      val arts = npc.getAllArts()
+        .map { it.artId.toString() to it.exp }
+        .toMap()
       npc.delete()
-      NpcResponseData(npc, abilities)
+      NpcResponseData(npc, abilities, arts)
+    } catch (exc: GuildNotFoundError) {
+      val extra: MutableMap<String, Any?> = mutableMapOf()
+      extra["guild_id"] = guild_id
+      extra["id"] = id
+      throw NpcNotFoundError(extra)
+    }
+  }
+  @PutMapping("/{id}/arts/{art_id}")
+  @Transactional
+  fun updateNpcArt(
+    @PathVariable("guild_id") @IdSchema guild_id: String,
+    @PathVariable("id") @IdSchema id: String,
+    @PathVariable("art_id") @IdSchema artId: String,
+    data: NpcArtUpdateData
+  ) : Unit {
+    try {
+      val guild = Guild(GuildRepository.findById(guild_id))
+      val npc = guild.getNpc(id.toLong())
+      npc.addArt(artId.toLong(), data.exp)
     } catch (exc: GuildNotFoundError) {
       val extra: MutableMap<String, Any?> = mutableMapOf()
       extra["guild_id"] = guild_id

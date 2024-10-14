@@ -67,8 +67,10 @@ class PlayerController {
       expectedNpcType = data.expected_npc_kind,
       abilityRoll = data.ability_roll,
       familyRoll = data.family_roll,
-      isProdigy = data.is_prodigy,
-      hasMark = data.has_mark,
+      prodigyRoll = data.prodigy_roll,
+      markRoll = data.mark_roll,
+      berserkRoll = data.berserk_roll,
+      flags = data.flags,
       expectedFamilyId = null
     )
     return PlayerResponseData(player, listOf(), listOf(), null)
@@ -118,8 +120,10 @@ class PlayerController {
         familyId = data.family_id?.toLong(),
         abilityRoll = data.ability_roll,
         familyRoll = data.family_roll,
-        isProdigy = data.is_prodigy,
-        hasMark = data.has_mark
+        prodigyRoll = data.prodigy_roll,
+        markRoll = data.mark_roll,
+        berserkRoll = data.berserk_roll,
+        flags = data.flags
       )
       val npc = player.getReferredNpc()
       val abilities = player.getAllAbilities()

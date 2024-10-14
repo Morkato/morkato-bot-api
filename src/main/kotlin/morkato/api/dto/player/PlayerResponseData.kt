@@ -11,8 +11,10 @@ data class PlayerResponseData(
   val id: String,
   val ability_roll: Int,
   val family_roll: Int,
-  val is_prodigy: Boolean,
-  val has_mark: Boolean,
+  val prodigy_roll: Int,
+  val mark_roll: Int,
+  val berserk_roll: Int,
+  val flags: Int,
   val expected_npc_type: NpcType,
   val family_id: String?,
   val abilities: List<String>,
@@ -24,8 +26,10 @@ data class PlayerResponseData(
     player.id,
     player.abilityRoll,
     player.familyRoll,
-    player.isProdigy,
-    player.hasMark,
+    player.prodigyRoll,
+    player.markRoll,
+    player.berserkRoll,
+    player.flags,
     player.expectedNpcType,
     player.expectedFamilyId?.toString(),
     abilities,
@@ -35,7 +39,10 @@ data class PlayerResponseData(
       npc.getAllAbilities()
         .map(NpcAbilityRepository.NpcAbilityPayload::abilityId)
         .map(Long::toString)
-        .toList()
+        .toList(),
+      npc.getAllArts()
+        .map { it.artId.toString() to it.exp }
+        .toMap()
     ) else null
   );
 }

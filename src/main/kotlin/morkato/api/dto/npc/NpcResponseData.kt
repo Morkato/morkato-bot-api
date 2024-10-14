@@ -11,8 +11,7 @@ data class NpcResponseData(
   val family_id: String,
   val surname: String,
   val energy: Int,
-  val prodigy: Boolean,
-  val mark: Boolean,
+  val flags: Int,
   val max_life: Long,
   val max_breath: Long,
   val max_blood: Long,
@@ -20,9 +19,10 @@ data class NpcResponseData(
   val current_breath: Long,
   val current_blood: Long,
   val icon: String?,
-  val abilities: List<String>
+  val abilities: List<String>,
+  val arts: Map<String, Long>
 ) {
-  public constructor(npc: Npc, abilities: List<String>) : this(
+  public constructor(npc: Npc, abilities: List<String>, arts: Map<String, Long>) : this(
     npc.guild.id,
     npc.id.toString(),
     npc.name,
@@ -30,8 +30,7 @@ data class NpcResponseData(
     npc.familyId.toString(),
     npc.surname,
     npc.energy,
-    npc.prodigy,
-    npc.mark,
+    npc.flags,
     npc.maxLife,
     npc.maxBreath,
     npc.maxBlood,
@@ -39,6 +38,7 @@ data class NpcResponseData(
     npc.currentBreath,
     npc.currentBlood,
     npc.icon,
-    abilities
+    abilities,
+    arts
   );
 }
