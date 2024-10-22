@@ -1,6 +1,7 @@
 package morkato.api.dto.attack
 
 import morkato.api.model.attack.Attack
+import java.math.BigDecimal
 
 data class AttackResponseData(
   val guild_id: String,
@@ -10,10 +11,10 @@ data class AttackResponseData(
   val name_prefix_art: String?,
   val description: String?,
   val banner: String?,
-  val damage: Long,
-  val breath: Long,
-  val blood: Long,
-  val intents: Int
+  val damage: BigDecimal,
+  val breath: BigDecimal,
+  val blood: BigDecimal,
+  val flags: Int
 ) {
   public constructor(attack: Attack) : this(
     attack.guild.id,
@@ -26,6 +27,6 @@ data class AttackResponseData(
     attack.damage,
     attack.breath,
     attack.blood,
-    attack.intents
+    attack.flags
   ) {}
 }

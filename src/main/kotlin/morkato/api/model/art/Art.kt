@@ -6,6 +6,7 @@ import morkato.api.model.attack.Attack
 import morkato.api.model.guild.Guild
 
 import org.jetbrains.exposed.sql.ResultRow
+import java.math.BigDecimal
 
 class Art(
   val guild: Guild,
@@ -14,10 +15,10 @@ class Art(
   val type: ArtType,
   val description: String?,
   val banner: String?,
-  val energy: Int,
-  val life: Long,
-  val breath: Long,
-  val blood: Long
+  val energy: BigDecimal,
+  val life: BigDecimal,
+  val breath: BigDecimal,
+  val blood: BigDecimal
 ) {
   public constructor(guild: Guild, row: ResultRow) : this(guild, ArtRepository.ArtPayload(row)) {}
   public  constructor(guild: Guild, payload: ArtRepository.ArtPayload) : this(
@@ -41,10 +42,10 @@ class Art(
     namePrefixArt: String?,
     description: String?,
     banner: String?,
-    damage: Long?,
-    breath: Long?,
-    blood: Long?,
-    intents: Int?
+    damage: BigDecimal?,
+    breath: BigDecimal?,
+    blood: BigDecimal?,
+    flags: Int?
   ) : Attack {
     val payload = AttackRepository.createAttack(
       guildId = this.guild.id,
@@ -56,7 +57,7 @@ class Art(
       damage = damage,
       breath = breath,
       blood = blood,
-      intents = intents
+      flags = flags
     )
     return Attack(this.guild, payload)
   }
@@ -65,10 +66,10 @@ class Art(
     type: ArtType? = null,
     description: String? = null,
     banner: String? = null,
-    energy: Int? = null,
-    life: Long? = null,
-    breath: Long? = null,
-    blood: Long? = null
+    energy: BigDecimal? = null,
+    life: BigDecimal? = null,
+    breath: BigDecimal? = null,
+    blood: BigDecimal? = null
   ) : Art {
     val payload = ArtRepository.ArtPayload(
       guildId = this.guild.id,

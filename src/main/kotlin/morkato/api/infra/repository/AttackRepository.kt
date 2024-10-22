@@ -10,6 +10,8 @@ import org.jetbrains.exposed.sql.and
 
 import morkato.api.exception.model.AttackNotFoundError
 import morkato.api.infra.tables.attacks
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 object AttackRepository {
   public data class AttackPayload(
@@ -20,10 +22,10 @@ object AttackRepository {
     val namePrefixArt: String?,
     val description: String?,
     val banner: String?,
-    val damage: Long,
-    val breath: Long,
-    val blood: Long,
-    val intents: Int
+    val damage: BigDecimal,
+    val breath: BigDecimal,
+    val blood: BigDecimal,
+    val flags: Int
   ) {
     public constructor(row: ResultRow) : this(
       row[attacks.guild_id],
@@ -36,14 +38,12 @@ object AttackRepository {
       row[attacks.damage],
       row[attacks.breath],
       row[attacks.blood],
-      row[attacks.intents]
+      row[attacks.flags]
     ) {}
   }
   private object DefaultValue {
-    const val damage: Long = 1
-    const val breath: Long = 1
-    const val blood: Long = 1
-    const val intents: Int = 0
+    const val flags: Int = 0
+    val attr = BigDecimal(0).setScale(12, RoundingMode.UP)
   }
   fun findAllByGuildId(id: String) : Sequence<AttackPayload> {
     return attacks
@@ -90,10 +90,10 @@ object AttackRepository {
     namePrefixArt: String?,
     description: String?,
     banner: String?,
-    damage: Long?,
-    breath: Long?,
-    blood: Long?,
-    intents: Int?
+    damage: BigDecimal?,
+    breath: BigDecimal?,
+    blood: BigDecimal?,
+    flags: Int?
   ) : AttackPayload {
     val id = attacks.insert {
       it[this.guild_id] = guildId
@@ -111,8 +111,8 @@ object AttackRepository {
       if (blood != null) {
         it[this.blood] = blood
       }
-      if (intents != null) {
-        it[this.intents] = intents
+      if (flags != null) {
+        it[this.flags] = flags
       }
     } get attacks.id
     return AttackPayload(
@@ -123,10 +123,10 @@ object AttackRepository {
       namePrefixArt = namePrefixArt,
       description = description,
       banner = banner,
-      damage = damage ?: DefaultValue.damage,
-      breath = breath ?: DefaultValue.breath,
-      blood = blood ?: DefaultValue.blood,
-      intents = intents ?: DefaultValue.intents
+      damage = damage ?: DefaultValue.attr,
+      breath = breath ?: DefaultValue.attr,
+      blood = blood ?: DefaultValue.attr,
+      flags = flags ?: DefaultValue.flags
     )
   }
   fun updateAttack(
@@ -136,10 +136,10 @@ object AttackRepository {
     namePrefixArt: String? = null,
     description: String? = null,
     banner: String? = null,
-    damage: Long? = null,
-    breath: Long? = null,
-    blood: Long? = null,
-    intents: Int? = null
+    damage: BigDecimal? = null,
+    breath: BigDecimal? = null,
+    blood: BigDecimal? = null,
+    flags: Int? = null
   ) : Unit {
     attacks.update({
       (attacks.guild_id eq guildId)
@@ -166,8 +166,8 @@ object AttackRepository {
       if (blood != null) {
         it[this.blood] = blood
       }
-      if(intents != null) {
-        it[this.intents] = intents
+      if(flags != null) {
+        it[this.flags] = flags
       }
     }
   }

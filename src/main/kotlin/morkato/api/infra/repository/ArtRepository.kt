@@ -11,6 +11,8 @@ import org.jetbrains.exposed.sql.and
 import morkato.api.exception.model.ArtNotFoundError
 import morkato.api.infra.tables.arts
 import morkato.api.model.art.ArtType
+import java.math.RoundingMode
+import java.math.BigDecimal
 
 object ArtRepository {
   public data class ArtPayload(
@@ -20,10 +22,10 @@ object ArtRepository {
     val type: ArtType,
     val description: String?,
     val banner: String?,
-    val energy: Int,
-    val life: Long,
-    val breath: Long,
-    val blood: Long
+    val energy: BigDecimal,
+    val life: BigDecimal,
+    val breath: BigDecimal,
+    val blood: BigDecimal
   ) {
     public constructor(row: ResultRow) : this(
       row[arts.guild_id],
@@ -39,8 +41,8 @@ object ArtRepository {
     ) {}
   }
   private object DefaultValue {
-    const val energy: Int = 25
-    const val attr: Long = 1
+    val energy = BigDecimal(25).setScale(3, RoundingMode.UP)
+    val attr = BigDecimal(0).setScale(3, RoundingMode.UP)
   }
   fun findAllByGuildId(id: String) : Sequence<ArtPayload> {
     return arts
@@ -76,10 +78,10 @@ object ArtRepository {
     type: ArtType,
     description: String?,
     banner: String?,
-    energy: Int?,
-    life: Long?,
-    breath: Long?,
-    blood: Long?
+    energy: BigDecimal?,
+    life: BigDecimal?,
+    breath: BigDecimal?,
+    blood: BigDecimal?
   ) : ArtPayload {
     val id = arts.insert {
       it[this.guild_id] = guildId
@@ -120,10 +122,10 @@ object ArtRepository {
     type: ArtType?,
     description: String?,
     banner: String?,
-    energy: Int?,
-    life: Long?,
-    breath: Long?,
-    blood: Long?
+    energy: BigDecimal?,
+    life: BigDecimal?,
+    breath: BigDecimal?,
+    blood: BigDecimal?
   ) : Unit {
     arts.update({
       (arts.guild_id eq guildId)

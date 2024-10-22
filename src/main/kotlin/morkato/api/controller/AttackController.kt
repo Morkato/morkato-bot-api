@@ -29,14 +29,10 @@ class AttackController {
   fun getAllByGuildId(
     @PathVariable("guild_id") @IdSchema guild_id: String
   ) : List<AttackResponseData> {
-    return try {
-      val guild = Guild(GuildRepository.findById(guild_id))
-      guild.getAllAttacks()
-        .map(::AttackResponseData)
-        .toList()
-    } catch (exc: GuildNotFoundError) {
-      return listOf()
-    }
+    val guild = Guild(GuildRepository.findById(guild_id))
+    return guild.getAllAttacks()
+      .map(::AttackResponseData)
+      .toList()
   }
   @GetMapping("/{id}")
   @Transactional
@@ -44,16 +40,9 @@ class AttackController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @PathVariable("id") @IdSchema id: String
   ) : AttackResponseData {
-    return try {
-      val guild = Guild(GuildRepository.findById(guild_id))
-      val attack = guild.getAttack(id.toLong())
-      AttackResponseData(attack)
-    } catch (exc: GuildNotFoundError) {
-      val extra: MutableMap<String, Any?> = mutableMapOf()
-      extra["guild_id"] = guild_id
-      extra["id"] = id
-      throw AttackNotFoundError(extra)
-    }
+    val guild = Guild(GuildRepository.findById(guild_id))
+    val attack = guild.getAttack(id.toLong())
+    return AttackResponseData(attack)
   }
   @PostMapping("/{art_id}")
   @Transactional
@@ -62,26 +51,19 @@ class AttackController {
     @PathVariable("art_id") @IdSchema art_id: String,
     @RequestBody @Valid data: AttackCreateData
   ) : AttackResponseData {
-    return try {
-      val guild = Guild(GuildRepository.findById(guild_id))
-      val art = guild.getArt(art_id.toLong())
-      val attack = art.createAttack(
-        name = data.name,
-        namePrefixArt = data.name_prefix_art,
-        description = data.description,
-        banner = data.banner,
-        damage = data.damage,
-        breath = data.breath,
-        blood = data.blood,
-        intents = data.intents
-      )
-      AttackResponseData(attack)
-    } catch (exc: GuildNotFoundError) {
-      val extra: MutableMap<String, Any?> = mutableMapOf()
-      extra["guild_id"] = guild_id
-      extra["id"] = art_id
-      throw ArtNotFoundError(extra)
-    }
+    val guild = Guild(GuildRepository.findById(guild_id))
+    val art = guild.getArt(art_id.toLong())
+    val attack = art.createAttack(
+      name = data.name,
+      namePrefixArt = data.name_prefix_art,
+      description = data.description,
+      banner = data.banner,
+      damage = data.damage,
+      breath = data.breath,
+      blood = data.blood,
+      flags = data.flags
+    )
+    return AttackResponseData(attack)
   }
   @PutMapping("/{id}")
   @Transactional
@@ -90,26 +72,19 @@ class AttackController {
     @PathVariable("id") @IdSchema id: String,
     @RequestBody @Valid data: AttackUpdateData
   ) : AttackResponseData {
-    return try {
-      val guild = Guild(GuildRepository.findById(guild_id))
-      val before = guild.getAttack(id.toLong())
-      val attack = before.update(
-        name = data.name,
-        namePrefixArt = data.name_prefix_art,
-        description = data.description,
-        banner = data.banner,
-        damage = data.damage,
-        breath = data.breath,
-        blood = data.blood,
-        intents = data.intents
-      )
-      AttackResponseData(attack)
-    } catch (exc: GuildNotFoundError) {
-      val extra: MutableMap<String, Any?> = mutableMapOf()
-      extra["guild_id"] = guild_id
-      extra["id"] = id
-      throw AttackNotFoundError(extra)
-    }
+    val guild = Guild(GuildRepository.findById(guild_id))
+    val before = guild.getAttack(id.toLong())
+    val attack = before.update(
+      name = data.name,
+      namePrefixArt = data.name_prefix_art,
+      description = data.description,
+      banner = data.banner,
+      damage = data.damage,
+      breath = data.breath,
+      blood = data.blood,
+      flags = data.flags
+    )
+    return AttackResponseData(attack)
   }
   @DeleteMapping("/{id}")
   @Transactional
@@ -117,16 +92,9 @@ class AttackController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @PathVariable("id") @IdSchema id: String
   ) : AttackResponseData {
-    return try {
-      val guild = Guild(GuildRepository.findById(guild_id))
-      val attack = guild.getAttack(id.toLong())
-      attack.delete()
-      AttackResponseData(attack)
-    } catch (exc: GuildNotFoundError) {
-      val extra: MutableMap<String, Any?> = mutableMapOf()
-      extra["guild_id"] = guild_id
-      extra["id"] = id
-      throw AttackNotFoundError(extra)
-    }
+    val guild = Guild(GuildRepository.findById(guild_id))
+    val attack = guild.getAttack(id.toLong())
+    attack.delete()
+    return AttackResponseData(attack)
   }
 }

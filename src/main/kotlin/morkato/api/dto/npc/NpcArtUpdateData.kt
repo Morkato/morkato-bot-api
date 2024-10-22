@@ -1,5 +1,8 @@
 package morkato.api.dto.npc
 
+import morkato.api.dto.validation.AttrSchema
+import java.math.BigDecimal
+
 data class NpcArtUpdateData(
-  val exp: Long
+  @AttrSchema val exp: BigDecimal
 );

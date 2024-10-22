@@ -11,6 +11,9 @@ import org.jetbrains.exposed.sql.and
 import morkato.api.exception.model.NpcNotFoundError
 import morkato.api.infra.tables.npcs
 import morkato.api.model.npc.NpcType
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.time.Instant
 
 object NpcRepository {
   public data class NpcPayload(
@@ -20,15 +23,17 @@ object NpcRepository {
     val type: NpcType,
     val familyId: Long,
     val surname: String,
-    val energy: Int,
+    val maxEnergy: BigDecimal,
+    val energy: BigDecimal,
     val flags: Int,
-    val maxLife: Long,
-    val maxBreath: Long,
-    val maxBlood: Long,
-    val currentLife: Long,
-    val currentBreath: Long,
-    val currentBlood: Long,
-    val icon: String?
+    val maxLife: BigDecimal,
+    val maxBreath: BigDecimal,
+    val maxBlood: BigDecimal,
+    val currentLife: BigDecimal,
+    val currentBreath: BigDecimal,
+    val currentBlood: BigDecimal,
+    val icon: String?,
+    val lastAction: Instant?
   ) {
     public constructor(row: ResultRow) : this(
       row[npcs.guild_id],
@@ -37,6 +42,7 @@ object NpcRepository {
       row[npcs.type],
       row[npcs.family_id],
       row[npcs.surname],
+      row[npcs.max_energy],
       row[npcs.energy],
       row[npcs.flags],
       row[npcs.max_life],
@@ -45,13 +51,9 @@ object NpcRepository {
       row[npcs.current_life],
       row[npcs.current_breath],
       row[npcs.current_blood],
-      row[npcs.icon]
+      row[npcs.icon],
+      row[npcs.last_action]
     );
-  }
-  private object DefaultValue {
-    const val energy: Int = 100
-    const val flags: Int = 0
-    const val attr: Long = 0
   }
   fun findById(guildId: String, id: Long) : NpcPayload {
     return try {
@@ -117,14 +119,13 @@ object NpcRepository {
     type: NpcType,
     familyId: Long,
     surname: String,
-    energy: Int?,
     flags: Int?,
-    life: Long?,
-    breath: Long?,
-    blood: Long?,
+    life: BigDecimal?,
+    breath: BigDecimal?,
+    blood: BigDecimal?,
     icon: String?
   ) : NpcPayload {
-    val id = npcs.insert {
+    val result = npcs.insert {
       it[this.guild_id] = guildId
       it[this.name] = name
       it[this.type] = type
@@ -133,9 +134,6 @@ object NpcRepository {
       it[this.icon] = icon
       if (playerId != null) {
         it[this.player_id] = playerId
-      }
-      if (energy != null) {
-        it[this.energy] = energy
       }
       if (flags != null) {
         it[this.flags] = flags
@@ -152,7 +150,9 @@ object NpcRepository {
         it[this.max_blood] = blood
         it[this.current_blood] = blood
       }
-    } get npcs.id
+    }
+    val id = result get npcs.id
+    val maxEnergy = result get npcs.max_energy
     return NpcPayload(
       guildId = guildId,
       id = id,
@@ -160,15 +160,17 @@ object NpcRepository {
       type = type,
       familyId = familyId,
       surname = surname,
-      energy = energy ?: DefaultValue.energy,
-      flags = flags ?: DefaultValue.flags,
-      maxLife = life ?: DefaultValue.attr,
-      maxBreath = breath ?: DefaultValue.attr,
-      maxBlood = blood ?: DefaultValue.attr,
-      currentLife = life ?: DefaultValue.attr,
-      currentBreath = breath ?: DefaultValue.attr,
-      currentBlood = blood ?: DefaultValue.attr,
-      icon = icon
+      maxEnergy = maxEnergy,
+      energy = maxEnergy,
+      flags = flags ?: 0,
+      maxLife = life ?: BigDecimal(0).setScale(12, RoundingMode.UP),
+      maxBreath = breath ?: BigDecimal(0).setScale(12, RoundingMode.UP),
+      maxBlood = blood ?: BigDecimal(0).setScale(12, RoundingMode.UP),
+      currentLife = life ?: BigDecimal(0).setScale(12, RoundingMode.UP),
+      currentBreath = breath ?: BigDecimal(0).setScale(12, RoundingMode.UP),
+      currentBlood = blood ?: BigDecimal(0).setScale(12, RoundingMode.UP),
+      icon = icon,
+      lastAction = null
     )
   }
   fun updateNpc(
@@ -177,15 +179,17 @@ object NpcRepository {
     name: String?,
     type: NpcType?,
     surname: String?,
-    energy: Int?,
+    maxEnergy: BigDecimal?,
+    energy: BigDecimal?,
     flags: Int?,
-    maxLife: Long?,
-    maxBreath: Long?,
-    maxBlood: Long?,
-    currentLife: Long?,
-    currentBreath: Long?,
-    currentBlood: Long?,
-    icon: String?
+    maxLife: BigDecimal?,
+    maxBreath: BigDecimal?,
+    maxBlood: BigDecimal?,
+    currentLife: BigDecimal?,
+    currentBreath: BigDecimal?,
+    currentBlood: BigDecimal?,
+    icon: String?,
+    lastAction: Instant?
   ) : Unit {
     npcs.update({
       (npcs.guild_id eq guildId)
@@ -199,6 +203,9 @@ object NpcRepository {
       }
       if (surname != null) {
         it[this.surname] = surname
+      }
+      if (maxEnergy != null) {
+        it[this.max_energy] = maxEnergy
       }
       if (energy != null) {
         it[this.energy] = energy
@@ -226,6 +233,9 @@ object NpcRepository {
       }
       if (icon != null) {
         it[this.icon] = icon
+      }
+      if (lastAction != null) {
+        it[this.last_action] = lastAction
       }
     }
   }

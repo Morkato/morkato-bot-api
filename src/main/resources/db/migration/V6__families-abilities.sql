@@ -3,14 +3,12 @@ CREATE TABLE "abilities" (
   "name" name_type NOT NULL,
   "key" key_type NOT NULL,
   "id" id_type NOT NULL DEFAULT snowflake_id('ability_snowflake_seq'),
+  "energy" energy_type NOT NULL,
   "guild_id" discord_id_type NOT NULL,
-  "percent" energy_type NOT NULL DEFAULT 50,
-  "type" ability_type NOT NULL,
-  "npc_kind" INTEGER NOT NULL,
-  "immutable" BOOLEAN DEFAULT FALSE,
+  "percent" percent_type NOT NULL DEFAULT 0,
+  "npc_type" INTEGER NOT NULL,
   "description" description_type DEFAULT NULL,
-  "banner" banner_type DEFAULT NULL,
-  "updated_at" TIMESTAMP DEFAULT NULL
+  "banner" banner_type DEFAULT NULL
 );
 
 CREATE SEQUENCE "family_snowflake_seq";
@@ -19,11 +17,10 @@ CREATE TABLE "families" (
   "key" key_type NOT NULL,
   "id" id_type NOT NULL DEFAULT snowflake_id('family_snowflake_seq'),
   "guild_id" discord_id_type NOT NULL,
-  "percent" energy_type NOT NULL DEFAULT 50,
-  "npc_kind" npc_type NOT NULL,
+  "percent" percent_type NOT NULL DEFAULT 0,
+  "npc_type" INTEGER NOT NULL,
   "description" description_type DEFAULT NULL,
-  "banner" banner_type DEFAULT NULL,
-  "updated_at" TIMESTAMP DEFAULT NULL
+  "banner" banner_type DEFAULT NULL
 );
 
 CREATE TABLE "abilities_families" (

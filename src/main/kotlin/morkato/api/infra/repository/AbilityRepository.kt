@@ -9,18 +9,18 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.and
 
 import morkato.api.exception.model.AbilityNotFoundError
-import morkato.api.model.ability.AbilityType
 import morkato.api.infra.tables.abilities
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 object AbilityRepository {
   public data class AbilityPayload(
     val guildId: String,
     val id: Long,
     val name: String,
-    val type: AbilityType,
-    val percent: Int,
-    val npcKind: Int,
-    val immutable: Boolean,
+    val energy: BigDecimal,
+    val percent: BigDecimal,
+    val npcType: Int,
     val description: String?,
     val banner: String?
   ) {
@@ -28,17 +28,16 @@ object AbilityRepository {
       row[abilities.guild_id],
       row[abilities.id],
       row[abilities.name],
-      row[abilities.type],
+      row[abilities.energy],
       row[abilities.percent],
-      row[abilities.npc_kind],
-      row[abilities.immutable],
+      row[abilities.npc_type],
       row[abilities.description],
       row[abilities.banner]
     ) {}
   }
   private object DefaultValue {
-    const val percent = 50
-    const val immutable = false
+    const val percent: Int = 0
+    const val energy: Int = 0
   }
   fun findAllByGuildId(id: String) : Sequence<AbilityPayload> {
     return abilities
@@ -71,23 +70,21 @@ object AbilityRepository {
   fun createAbility(
     guildId: String,
     name: String,
-    type: AbilityType,
-    percent: Int?,
-    npcKind: Int,
-    immutable: Boolean?,
+    energy: BigDecimal?,
+    percent: BigDecimal?,
+    npcType: Int,
     description: String?,
     banner: String?
   ) : AbilityPayload {
     val id = abilities.insert {
       it[this.guild_id] = guildId
       it[this.name] = name
-      it[this.type] = type
-      it[this.npc_kind] = npcKind
+      it[this.npc_type] = npcType
+      if (energy != null) {
+        it[this.energy] = energy
+      }
       if (percent != null) {
         it[this.percent] = percent
-      }
-      if (immutable != null) {
-        it[this.immutable] = immutable
       }
       if (description != null) {
         it[this.description] = description
@@ -100,10 +97,9 @@ object AbilityRepository {
       guildId = guildId,
       id = id,
       name = name,
-      type = type,
-      percent = percent ?: DefaultValue.percent,
-      npcKind = npcKind,
-      immutable = immutable ?: DefaultValue.immutable,
+      energy = energy ?: BigDecimal(DefaultValue.energy).setScale(3, RoundingMode.UP),
+      percent = percent ?: BigDecimal(0).setScale(3, RoundingMode.UP),
+      npcType = npcType,
       description = description,
       banner = banner
     )
@@ -112,9 +108,9 @@ object AbilityRepository {
     guildId: String,
     id: Long,
     name: String?,
-    type: AbilityType?,
-    percent: Int?,
-    npcKind: Int?,
+    energy: BigDecimal?,
+    percent: BigDecimal?,
+    npcType: Int?,
     description: String?,
     banner: String?
   ) : Unit {
@@ -125,14 +121,14 @@ object AbilityRepository {
       if (name != null) {
         it[this.name] = name
       }
-      if (type != null) {
-        it[this.type] = type
+      if (energy != null) {
+        it[this.energy] = energy
       }
       if (percent != null) {
         it[this.percent] = percent
       }
-      if (npcKind != null) {
-        it[this.npc_kind] = npcKind
+      if (npcType != null) {
+        it[this.npc_type] = npcType
       }
       if (description != null) {
         it[this.description] = description

@@ -2,6 +2,7 @@ package morkato.api.dto.art
 
 import morkato.api.model.art.ArtType
 import morkato.api.model.art.Art
+import java.math.BigDecimal
 
 data class ArtResponseData(
   val guild_id: String,
@@ -10,10 +11,10 @@ data class ArtResponseData(
   val type: ArtType,
   val description: String?,
   val banner: String?,
-  val energy: Int,
-  val life: Long,
-  val breath: Long,
-  val blood: Long,
+  val energy: BigDecimal,
+  val life: BigDecimal,
+  val breath: BigDecimal,
+  val blood: BigDecimal,
   val attacks: List<ArtAttackResponseData>
 ) {
   public constructor(art: Art, attacks: List<ArtAttackResponseData>) : this(
@@ -28,5 +29,5 @@ data class ArtResponseData(
     art.breath,
     art.blood,
     attacks
-  ) {}
+  );
 }

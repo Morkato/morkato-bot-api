@@ -7,22 +7,32 @@ import org.jetbrains.exposed.sql.update
 
 import morkato.api.exception.model.GuildNotFoundError
 import morkato.api.infra.tables.guilds
+import java.math.RoundingMode
+import java.math.BigDecimal
+import java.time.Instant
 
 object GuildRepository {
   public data class GuildPayload(
     val id: String,
-    val humanInitialLife: Long,
-    val oniInitialLife: Long,
-    val hybridInitialLife: Long,
-    val breathInitial: Long,
-    val bloodInitial: Long,
-    val familyRoll: Int,
-    val abilityRoll: Int,
+    val startRpgCalendar: Instant,
+    val startRpgDate: Instant,
+    val humanInitialLife: BigDecimal,
+    val oniInitialLife: BigDecimal,
+    val hybridInitialLife: BigDecimal,
+    val breathInitial: BigDecimal,
+    val bloodInitial: BigDecimal,
+    val familyRoll: BigDecimal,
+    val abilityRoll: BigDecimal,
+    val prodigyRoll: BigDecimal,
+    val markRoll: BigDecimal,
+    val berserkRoll: BigDecimal,
     val rollCategoryId: String?,
     val offCategoryId: String?
   ) {
     public constructor(row: ResultRow) : this(
       row[guilds.id],
+      row[guilds.start_rpg_calendar],
+      row[guilds.start_rpg_date],
       row[guilds.human_initial_life],
       row[guilds.oni_initial_life],
       row[guilds.hybrid_initial_life],
@@ -30,45 +40,25 @@ object GuildRepository {
       row[guilds.blood_initial],
       row[guilds.family_roll],
       row[guilds.ability_roll],
+      row[guilds.prodigy_roll],
+      row[guilds.mark_roll],
+      row[guilds.berserk_roll],
       row[guilds.roll_category_id],
       row[guilds.off_category_id]
     ) {}
   }
   private object DefaultValue {
-    const val humanInitialLife: Long = 1000
-    const val oniInitialLife: Long = 500
-    const val hybridInitialLife: Long = 1500
-    const val breathInitial: Long = 500
-    const val bloodInitial: Long = 1000
-    const val familyRoll: Int = 3
-    const val abilityRoll: Int = 3
+    val humanInitialLife = BigDecimal(1000).setScale(12, RoundingMode.UP)
+    val oniInitialLife = BigDecimal(500).setScale(12, RoundingMode.UP)
+    val hybridInitialLife = BigDecimal(1500).setScale(12, RoundingMode.UP)
+    val breathInitial = BigDecimal(500).setScale(12, RoundingMode.UP)
+    val bloodInitial = BigDecimal(1000).setScale(12, RoundingMode.UP)
+    val familyRoll = BigDecimal(3).setScale(3, RoundingMode.UP)
+    val abilityRoll = BigDecimal(3).setScale(3, RoundingMode.UP)
+    val prodigyRoll = BigDecimal(1).setScale(3, RoundingMode.UP)
+    val markRoll = BigDecimal(1).setScale(3, RoundingMode.UP)
+    val berserkRoll = BigDecimal(1).setScale(3, RoundingMode.UP)
   }
-  fun getPayloadWithDefaults(
-    id: String,
-    humanInitialLife: Long? = null,
-    oniInitialLife: Long? = null,
-    hybridInitialLife: Long? = null,
-    breathInitial: Long? = null,
-    bloodInitial: Long? = null,
-    familyRoll: Int? = null,
-    abilityRoll: Int? = null,
-    rollCategoryId: String? = null,
-    offCategoryId: String? = null
-  ) : GuildPayload {
-    return GuildPayload(
-      id = id,
-      humanInitialLife = humanInitialLife ?: DefaultValue.humanInitialLife,
-      oniInitialLife = oniInitialLife ?: DefaultValue.oniInitialLife,
-      hybridInitialLife = hybridInitialLife ?: DefaultValue.hybridInitialLife,
-      breathInitial = breathInitial ?: DefaultValue.breathInitial,
-      bloodInitial = bloodInitial ?: DefaultValue.bloodInitial,
-      familyRoll = familyRoll ?: DefaultValue.familyRoll,
-      abilityRoll = abilityRoll ?: DefaultValue.abilityRoll,
-      rollCategoryId = rollCategoryId,
-      offCategoryId = offCategoryId
-    )
-  }
-
   fun findById(id: String) : GuildPayload {
     return try {
       GuildPayload(
@@ -85,13 +75,18 @@ object GuildRepository {
   }
   fun createGuild(
     id: String,
-    humanInitialLife: Long? = null,
-    oniInitialLife: Long? = null,
-    hybridInitialLife: Long? = null,
-    breathInitial: Long? = null,
-    bloodInitial: Long? = null,
-    familyRoll: Int? = null,
-    abilityRoll: Int? = null,
+    rpgStartCalendar: Instant,
+    rpgStartDate: Instant? = null,
+    humanInitialLife: BigDecimal? = null,
+    oniInitialLife: BigDecimal? = null,
+    hybridInitialLife: BigDecimal? = null,
+    breathInitial: BigDecimal? = null,
+    bloodInitial: BigDecimal? = null,
+    familyRoll: BigDecimal? = null,
+    abilityRoll: BigDecimal? = null,
+    prodigyRoll: BigDecimal? = null,
+    markRoll: BigDecimal? = null,
+    berserkRoll: BigDecimal? = null,
     rollCategoryId: String? = null,
     offCategoryId: String? = null
   ) : GuildPayload {
@@ -99,6 +94,8 @@ object GuildRepository {
       it[this.id] = id
       it[this.roll_category_id] = rollCategoryId
       it[this.off_category_id] = offCategoryId
+      it[this.start_rpg_calendar] = start_rpg_calendar
+      it[this.start_rpg_date] = start_rpg_date
       if (humanInitialLife != null) {
         it[this.human_initial_life] = humanInitialLife
       }
@@ -120,36 +117,46 @@ object GuildRepository {
       if (abilityRoll != null) {
         it[this.ability_roll] = abilityRoll
       }
+      if (prodigyRoll != null) {
+        it[this.prodigy_roll] = prodigyRoll
+      }
+      if (markRoll != null) {
+        it[this.mark_roll] = markRoll
+      }
+      if (berserkRoll != null) {
+        it[this.berserk_roll] = berserkRoll
+      }
     }
-    return this.getPayloadWithDefaults(
+    return GuildPayload(
       id = id,
-      humanInitialLife = humanInitialLife,
-      oniInitialLife = oniInitialLife,
-      hybridInitialLife = hybridInitialLife,
-      breathInitial = breathInitial,
-      bloodInitial = bloodInitial,
-      familyRoll = familyRoll,
-      abilityRoll = abilityRoll,
+      startRpgCalendar = rpgStartCalendar,
+      startRpgDate = rpgStartDate ?: Instant.now(),
+      humanInitialLife = humanInitialLife ?: DefaultValue.humanInitialLife,
+      oniInitialLife = oniInitialLife ?: DefaultValue.oniInitialLife,
+      hybridInitialLife = hybridInitialLife ?: DefaultValue.hybridInitialLife,
+      breathInitial = breathInitial ?: DefaultValue.breathInitial,
+      bloodInitial = bloodInitial ?: DefaultValue.bloodInitial,
+      familyRoll = familyRoll ?: DefaultValue.familyRoll,
+      abilityRoll = abilityRoll ?: DefaultValue.abilityRoll,
+      prodigyRoll = prodigyRoll ?: DefaultValue.prodigyRoll,
+      markRoll = markRoll ?: DefaultValue.markRoll,
+      berserkRoll = berserkRoll ?: DefaultValue.berserkRoll,
       rollCategoryId = rollCategoryId,
       offCategoryId = offCategoryId
     )
   }
-  fun findByIdOrCreate(id: String) : GuildPayload {
-    return try {
-      this.findById(id)
-    } catch (exc: GuildNotFoundError) {
-      this.createGuild(id)
-    }
-  }
   fun updateGuild(
     id: String,
-    humanInitialLife: Long?,
-    oniInitialLife: Long?,
-    hybridInitialLife: Long?,
-    breathInitial: Long?,
-    bloodInitial: Long?,
-    familyRoll: Int?,
-    abilityRoll: Int?,
+    humanInitialLife: BigDecimal?,
+    oniInitialLife: BigDecimal?,
+    hybridInitialLife: BigDecimal?,
+    breathInitial: BigDecimal?,
+    bloodInitial: BigDecimal?,
+    familyRoll: BigDecimal?,
+    abilityRoll: BigDecimal?,
+    prodigyRoll: BigDecimal?,
+    markRoll: BigDecimal?,
+    berserkRoll: BigDecimal?,
     rollCategoryId: String?,
     offCategoryId: String?
   ) {
@@ -176,6 +183,15 @@ object GuildRepository {
       }
       if (abilityRoll != null) {
         it[this.ability_roll] = abilityRoll
+      }
+      if (prodigyRoll != null) {
+        it[this.prodigy_roll] = prodigyRoll
+      }
+      if (markRoll != null) {
+        it[this.mark_roll] = markRoll
+      }
+      if (berserkRoll != null) {
+        it[this.berserk_roll] = berserkRoll
       }
       if (rollCategoryId != null) {
         it[this.roll_category_id] = rollCategoryId

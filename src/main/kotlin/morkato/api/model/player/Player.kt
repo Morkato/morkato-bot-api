@@ -11,25 +11,26 @@ import morkato.api.model.npc.NpcType
 import morkato.api.model.npc.Npc
 
 import org.jetbrains.exposed.sql.ResultRow
+import java.math.BigDecimal
 
 class Player(
   val guild: Guild,
   val id: String,
-  val expectedNpcType: NpcType,
-  val expectedFamilyId: Long?,
-  val abilityRoll: Int,
-  val familyRoll: Int,
-  val prodigyRoll: Int,
-  val markRoll: Int,
-  val berserkRoll: Int,
+  val npcType: NpcType,
+  val familyId: Long?,
+  val abilityRoll: BigDecimal,
+  val familyRoll: BigDecimal,
+  val prodigyRoll: BigDecimal,
+  val markRoll: BigDecimal,
+  val berserkRoll: BigDecimal,
   val flags: Int,
 ) {
   public constructor(guild: Guild, row: ResultRow) : this(guild, PlayerRepository.PlayerPayload(row));
   public constructor(guild: Guild, payload: PlayerRepository.PlayerPayload) : this(
     guild,
     payload.id,
-    payload.expectedNpcType,
-    payload.expectedFamilyId,
+    payload.npcType,
+    payload.familyId,
     payload.abilityRoll,
     payload.familyRoll,
     payload.prodigyRoll,
@@ -51,23 +52,16 @@ class Player(
     surname: String,
     icon: String?
   ) : Npc {
-    val abilities = this.getAllAbilities()
-      .map(PlayerAbilityRepository.PlayerAbilityPayload::abilityId)
-    val familyId = this.expectedFamilyId ?: throw PlayerFamilyIsNullError(this.guild.id, this.id)
-    val npc = this.guild.createNpc(
+    val familyId = this.familyId ?: throw PlayerFamilyIsNullError(this.guild.id, this.id)
+    return this.guild.createNpc(
       playerId = this.id,
       name = name,
       surname = surname,
-      type = this.expectedNpcType,
+      type = this.npcType,
       familyId = familyId,
-      energy = null,
       flags = this.flags,
       icon = icon
     )
-    for (id in abilities) {
-      npc.addAbility(id)
-    }
-    return npc
   }
 
   fun getAllAbilities() : Sequence<PlayerAbilityRepository.PlayerAbilityPayload> {
@@ -80,28 +74,28 @@ class Player(
 
   fun addAbility(id: Long) : PlayerAbilityRepository.PlayerAbilityPayload {
     val ability = PlayerAbilityRepository.createPLayerAbility(this.guild.id, this.id, id)
-    this.update(abilityRoll = this.abilityRoll - 1)
+    this.update(abilityRoll = this.abilityRoll - BigDecimal(1))
     return ability
   }
   fun addFamily(id: Long) : PlayerFamilyRepository.PlayerFamilyPayload {
     val family = PlayerFamilyRepository.createPlayerFamily(this.guild.id, this.id, id)
-    this.update(familyRoll = this.familyRoll - 1)
+    this.update(familyRoll = this.familyRoll - BigDecimal(1))
     return family
   }
 
   fun update(
     familyId: Long? = null,
-    abilityRoll: Int? = null,
-    familyRoll: Int? = null,
-    prodigyRoll: Int? = null,
-    markRoll: Int? = null,
-    berserkRoll: Int? = null,
+    abilityRoll: BigDecimal? = null,
+    familyRoll: BigDecimal? = null,
+    prodigyRoll: BigDecimal? = null,
+    markRoll: BigDecimal? = null,
+    berserkRoll: BigDecimal? = null,
     flags: Int? = null
   ) : Player {
     PlayerRepository.updatePlayer(
       guildId = this.guild.id,
       id = this.id,
-      expectedFamilyId = familyId,
+      familyId = familyId,
       abilityRoll = abilityRoll,
       familyRoll = familyRoll,
       prodigyRoll = prodigyRoll,
@@ -112,8 +106,8 @@ class Player(
     return Player(
       guild = this.guild,
       id = this.id,
-      expectedNpcType = this.expectedNpcType,
-      expectedFamilyId = this.expectedFamilyId ?: familyId,
+      npcType = this.npcType,
+      familyId = this.familyId ?: familyId,
       abilityRoll = abilityRoll ?: this.abilityRoll,
       familyRoll = familyRoll ?: this.familyRoll,
       prodigyRoll = prodigyRoll ?: this.prodigyRoll,

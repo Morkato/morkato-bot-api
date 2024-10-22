@@ -12,13 +12,14 @@ import org.jetbrains.exposed.sql.and
 import java.sql.SQLIntegrityConstraintViolationException
 
 import morkato.api.infra.tables.npcs_arts
+import java.math.BigDecimal
 
 object NpcArtRepository {
   public data class NpcArtPayload(
     val guildId: String,
     val npcId: Long,
     val artId: Long,
-    val exp: Long
+    val exp: BigDecimal
   ) {
     public constructor(row: ResultRow) : this(
       row[npcs_arts.guild_id],
@@ -41,7 +42,7 @@ object NpcArtRepository {
     guildId: String,
     npcId: Long,
     artId: Long,
-    exp: Long
+    exp: BigDecimal
   ) : NpcArtPayload {
     return try {
       this.createNpcArt(guildId, npcId, artId, exp)
@@ -54,7 +55,7 @@ object NpcArtRepository {
     guildId: String,
     npcId: Long,
     artId: Long,
-    exp: Long
+    exp: BigDecimal
   ) : NpcArtPayload {
     npcs_arts.insert {
       it[this.guild_id] = guildId
@@ -73,7 +74,7 @@ object NpcArtRepository {
     guildId: String,
     npcId: Long,
     artId: Long,
-    exp: Long
+    exp: BigDecimal
   ) : Unit {
     npcs_arts.update({
       (npcs_arts.guild_id eq guildId)

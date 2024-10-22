@@ -1,19 +1,25 @@
 package morkato.api.infra.tables
 
+import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.Table
 
 object guilds : Table("guilds") {
-  val id = varchar("id", length = 30);
+  val id = discordSnowflakeIdType("id")
 
-  val human_initial_life = long("human_initial_life");
-  val oni_initial_life = long("oni_initial_life");
-  val hybrid_initial_life = long("hybrid_initial_life");
-  val breath_initial = long("breath_initial");
-  val blood_initial = long("blood_initial");
-  val family_roll = integer("family_roll")
-  val ability_roll = integer("ability_roll")
-  val roll_category_id = varchar("roll_category_id", length = 30).nullable()
-  val off_category_id = varchar("off_category_id", length = 30).nullable()
+  val start_rpg_calendar = timestamp("start_rpg_calendar")
+  val start_rpg_date = timestamp("start_rpg_date")
+  val human_initial_life = attrType("human_initial_life", )
+  val oni_initial_life = attrType("oni_initial_life")
+  val hybrid_initial_life = attrType("hybrid_initial_life")
+  val breath_initial = attrType("breath_initial")
+  val blood_initial = attrType("blood_initial")
+  val family_roll = rollType("family_roll")
+  val ability_roll = rollType("ability_roll")
+  val prodigy_roll = rollType("prodigy_roll")
+  val mark_roll = rollType("mark_roll")
+  val berserk_roll = rollType("berserk_roll")
+  val roll_category_id = discordSnowflakeIdType("roll_category_id").nullable()
+  val off_category_id = discordSnowflakeIdType("off_category_id").nullable()
 
-  override val primaryKey = PrimaryKey(id);
+  override val primaryKey = PrimaryKey(id)
 }

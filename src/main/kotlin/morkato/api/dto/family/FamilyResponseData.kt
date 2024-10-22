@@ -2,13 +2,14 @@ package morkato.api.dto.family
 
 import morkato.api.model.family.Family
 import morkato.api.model.npc.NpcType
+import java.math.BigDecimal
 
 data class FamilyResponseData(
   val guild_id: String,
   val id: String,
   val name: String,
-  val percent: Int,
-  val npc_kind: NpcType,
+  val percent: BigDecimal,
+  val npc_type: Int,
   val description: String?,
   val banner: String?,
   val abilities: List<String>
@@ -18,7 +19,7 @@ data class FamilyResponseData(
     family.id.toString(),
     family.name,
     family.percent,
-    family.npcKind,
+    family.npcType,
     family.description,
     family.banner,
     abilities

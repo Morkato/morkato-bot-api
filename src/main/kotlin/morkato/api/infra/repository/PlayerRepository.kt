@@ -11,38 +11,34 @@ import org.jetbrains.exposed.sql.and
 import morkato.api.exception.model.PlayerNotFoundError
 import morkato.api.infra.tables.players
 import morkato.api.model.npc.NpcType
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 object PlayerRepository {
   public data class PlayerPayload(
     val guildId: String,
     val id: String,
-    val abilityRoll: Int,
-    val familyRoll: Int,
-    val prodigyRoll: Int,
-    val markRoll: Int,
-    val berserkRoll: Int,
-    val flags: Int,
-    val expectedFamilyId: Long?,
-    val expectedNpcType: NpcType
+    val npcType: NpcType,
+    val familyId: Long?,
+    val abilityRoll: BigDecimal,
+    val familyRoll: BigDecimal,
+    val prodigyRoll: BigDecimal,
+    val markRoll: BigDecimal,
+    val berserkRoll: BigDecimal,
+    val flags: Int
   ) {
     public constructor(row: ResultRow) : this(
       row[players.guild_id],
       row[players.id],
+      row[players.npc_type],
+      row[players.family_id],
       row[players.ability_roll],
       row[players.family_roll],
       row[players.prodigy_roll],
       row[players.mark_roll],
       row[players.berserk_roll],
-      row[players.flags],
-      row[players.expected_family_id],
-      row[players.expected_npc_kind]
+      row[players.flags]
     );
-  }
-  private object DefaultValue {
-    const val familyRoll: Int = 3
-    const val abilityRoll: Int = 3
-    const val roll: Int = 1
-    const val flags: Int = 0
   }
   fun findById(guildId: String, id: String) : PlayerPayload {
     return try {
@@ -66,19 +62,20 @@ object PlayerRepository {
   fun createPlayer(
     guildId: String,
     id: String,
-    expectedNpcType: NpcType,
-    abilityRoll: Int?,
-    familyRoll: Int?,
-    prodigyRoll: Int?,
-    markRoll: Int?,
-    berserkRoll: Int?,
-    flags: Int?,
-    expectedFamilyId: Long?
+    npcType: NpcType,
+    familyId: Long?,
+    abilityRoll: BigDecimal?,
+    familyRoll: BigDecimal?,
+    prodigyRoll: BigDecimal?,
+    markRoll: BigDecimal?,
+    berserkRoll: BigDecimal?,
+    flags: Int?
   ) : PlayerPayload {
     players.insert {
       it[this.guild_id] = guildId
       it[this.id] = id
-      it[this.expected_npc_kind] = expectedNpcType
+      it[this.npc_type] = npcType
+      it[this.family_id] = familyId
       if (abilityRoll != null) {
         it[this.ability_roll] = abilityRoll
       }
@@ -97,38 +94,38 @@ object PlayerRepository {
       if (flags != null) {
         it[this.flags] = flags
       }
-      if (expectedFamilyId != null) {
-        it[this.expected_family_id] = expectedFamilyId
-      }
     }
     return PlayerPayload(
       guildId = guildId,
       id = id,
-      expectedNpcType = expectedNpcType,
-      expectedFamilyId = expectedFamilyId,
-      abilityRoll = abilityRoll ?: DefaultValue.abilityRoll,
-      familyRoll = familyRoll ?: DefaultValue.familyRoll,
-      prodigyRoll = prodigyRoll ?: DefaultValue.roll,
-      markRoll = markRoll ?: DefaultValue.roll,
-      berserkRoll = berserkRoll ?: DefaultValue.roll,
-      flags = flags ?: DefaultValue.flags
+      npcType = npcType,
+      familyId = familyId,
+      abilityRoll = abilityRoll ?: BigDecimal(3).setScale(3, RoundingMode.UP),
+      familyRoll = familyRoll ?: BigDecimal(3).setScale(3, RoundingMode.UP),
+      prodigyRoll = prodigyRoll ?: BigDecimal(1).setScale(3, RoundingMode.UP),
+      markRoll = markRoll ?: BigDecimal(1).setScale(3, RoundingMode.UP),
+      berserkRoll = berserkRoll ?: BigDecimal(1).setScale(3, RoundingMode.UP),
+      flags = flags ?: 0
     )
   }
   fun updatePlayer(
     guildId: String,
     id: String,
-    expectedFamilyId: Long?,
-    abilityRoll: Int?,
-    familyRoll: Int?,
-    prodigyRoll: Int?,
-    markRoll: Int?,
-    berserkRoll: Int?,
+    familyId: Long?,
+    abilityRoll: BigDecimal?,
+    familyRoll: BigDecimal?,
+    prodigyRoll: BigDecimal?,
+    markRoll: BigDecimal?,
+    berserkRoll: BigDecimal?,
     flags: Int?,
   ) : Unit {
     players.update({
       (players.guild_id eq guildId)
         .and(players.id eq id)
     }) {
+      if (familyId != null) {
+        it[this.family_id] = familyId
+      }
       if (abilityRoll != null) {
         it[this.ability_roll] = abilityRoll
       }
@@ -146,9 +143,6 @@ object PlayerRepository {
       }
       if (flags != null) {
         it[this.flags] = flags
-      }
-      if (expectedFamilyId != null) {
-        it[this.expected_family_id] = expectedFamilyId
       }
     }
   }

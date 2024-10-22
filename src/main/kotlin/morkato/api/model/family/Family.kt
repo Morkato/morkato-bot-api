@@ -6,12 +6,13 @@ import morkato.api.model.guild.Guild
 import morkato.api.model.npc.NpcType
 
 import org.jetbrains.exposed.sql.ResultRow
+import java.math.BigDecimal
 
 class Family(
   val guild: Guild,
   val id: Long,
-  val percent: Int,
-  val npcKind: NpcType,
+  val percent: BigDecimal,
+  val npcType: Int,
   val name: String,
   val description: String?,
   val banner: String?
@@ -21,7 +22,7 @@ class Family(
     guild,
     payload.id,
     payload.percent,
-    payload.npcKind,
+    payload.npcType,
     payload.name,
     payload.description,
     payload.banner
@@ -31,8 +32,8 @@ class Family(
   }
   fun update(
     name: String?,
-    npcKind: NpcType?,
-    percent: Int?,
+    npcKind: Int?,
+    percent: BigDecimal?,
     description: String?,
     banner: String?
   ) : Family {
@@ -40,7 +41,7 @@ class Family(
       guildId = this.guild.id,
       id = this.id,
       name = name ?: this.name,
-      npcKind = npcKind ?: this.npcKind,
+      npcType = npcKind ?: this.npcType,
       percent = percent ?: this.percent,
       description = description ?: this.description,
       banner = banner ?: this.banner
@@ -49,7 +50,7 @@ class Family(
       guildId = this.guild.id,
       id = this.id,
       name = name,
-      npcKind = npcKind,
+      npcType = npcType,
       percent = percent,
       description = description,
       banner = banner

@@ -4,6 +4,7 @@ import morkato.api.infra.repository.AttackRepository
 import morkato.api.model.guild.Guild
 
 import org.jetbrains.exposed.sql.ResultRow
+import java.math.BigDecimal
 
 class Attack(
   val guild: Guild,
@@ -13,10 +14,10 @@ class Attack(
   val namePrefixArt: String?,
   val description: String?,
   val banner: String?,
-  val damage: Long,
-  val breath: Long,
-  val blood: Long,
-  val intents: Int
+  val damage: BigDecimal,
+  val breath: BigDecimal,
+  val blood: BigDecimal,
+  val flags: Int
 ) {
   public constructor(guild: Guild, row: ResultRow) : this(guild, AttackRepository.AttackPayload(row)) {}
   public  constructor(guild: Guild, payload: AttackRepository.AttackPayload) : this(
@@ -30,17 +31,17 @@ class Attack(
     payload.damage,
     payload.breath,
     payload.blood,
-    payload.intents
-  ) {}
+    payload.flags
+  );
   fun update(
     name: String? = null,
     namePrefixArt: String? = null,
     description: String? = null,
     banner: String? = null,
-    damage: Long? = null,
-    breath: Long? = null,
-    blood: Long? = null,
-    intents: Int? = null
+    damage: BigDecimal? = null,
+    breath: BigDecimal? = null,
+    blood: BigDecimal? = null,
+    flags: Int? = null
   ) : Attack {
     val payload = AttackRepository.AttackPayload(
       guildId = this.guild.id,
@@ -53,7 +54,7 @@ class Attack(
       damage = damage ?: this.damage,
       breath = breath ?: this.breath,
       blood = blood ?: this.blood,
-      intents = intents ?: this.intents
+      flags = flags ?: this.flags
     )
     AttackRepository.updateAttack(
       guildId = this.guild.id,
@@ -65,7 +66,7 @@ class Attack(
       damage = damage,
       breath = breath,
       blood = blood,
-      intents = intents
+      flags = flags
     )
     return Attack(this.guild, payload)
   }

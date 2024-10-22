@@ -1,10 +1,16 @@
 package morkato.api.dto.guild
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import jakarta.validation.constraints.Digits
+import jakarta.validation.constraints.NotNull
 import morkato.api.dto.validation.AttrSchema
 import java.math.BigDecimal
+import java.time.Instant
 
-data class GuildUpdateData(
+data class GuildCreateData(
+  @NotNull
+  val start_rpg_calendar: Instant,
+  val start_rpg_date: Instant?,
   @AttrSchema val human_initial_life: BigDecimal?,
   @AttrSchema val oni_initial_life: BigDecimal?,
   @AttrSchema val hybrid_initial_life: BigDecimal?,

@@ -11,13 +11,15 @@ import org.jetbrains.exposed.sql.and
 import morkato.api.exception.model.FamilyNotFoundError
 import morkato.api.infra.tables.families
 import morkato.api.model.npc.NpcType
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 object FamilyRepository {
   public data class FamilyPayload(
     val guildId: String,
     val id: Long,
-    val percent: Int,
-    val npcKind: NpcType,
+    val percent: BigDecimal,
+    val npcType: Int,
     val name: String,
     val description: String?,
     val banner: String?
@@ -26,14 +28,11 @@ object FamilyRepository {
       row[families.guild_id],
       row[families.id],
       row[families.percent],
-      row[families.npc_kind],
+      row[families.npc_type],
       row[families.name],
       row[families.description],
       row[families.banner]
     ) {}
-  }
-  private object DefaultValue {
-    const val percent: Int = 50
   }
   fun findAllByGuildId(id: String) : Sequence<FamilyPayload> {
     return families
@@ -66,15 +65,15 @@ object FamilyRepository {
   fun createFamily(
     guildId: String,
     name: String,
-    npcKind: NpcType,
-    percent: Int?,
+    npcType: Int?,
+    percent: BigDecimal?,
     description: String?,
     banner: String?
   ) : FamilyPayload {
     val id = families.insert {
       it[this.guild_id] = guildId
       it[this.name] = name
-      it[this.npc_kind] = npcKind
+      it[this.npc_type] = npcType ?: 0
       it[this.description] = description
       it[this.banner] = banner
       if (percent != null) {
@@ -85,8 +84,8 @@ object FamilyRepository {
       guildId = guildId,
       id = id,
       name = name,
-      npcKind = npcKind,
-      percent = percent ?: DefaultValue.percent,
+      npcType = npcType ?: 0,
+      percent = percent ?: BigDecimal(0).setScale(3, RoundingMode.UP),
       description = description,
       banner = banner
     )
@@ -95,8 +94,8 @@ object FamilyRepository {
     guildId: String,
     id: Long,
     name: String?,
-    npcKind: NpcType?,
-    percent: Int?,
+    npcType: Int?,
+    percent: BigDecimal?,
     description: String?,
     banner: String?
   ) : Unit {
@@ -107,8 +106,8 @@ object FamilyRepository {
       if (name != null) {
         it[this.name] = name
       }
-      if (npcKind != null) {
-        it[this.npc_kind] = npcKind
+      if (npcType != null) {
+        it[this.npc_type] = npcType
       }
       if (percent != null) {
         it[this.percent] = percent

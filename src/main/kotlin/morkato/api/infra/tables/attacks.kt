@@ -3,18 +3,19 @@ package morkato.api.infra.tables
 import org.jetbrains.exposed.sql.Table
 
 object attacks : Table("attacks") {
-  val guild_id = reference("guild_id", guilds.id)
-  val id = long("id").autoIncrement()
+  val guild_id = discordSnowflakeIdType("guild_id")
+  val id = idType("id").autoIncrement()
 
-  val name = varchar("name", length = 30)
-  val art_id = reference("art_id", arts.id)
-  val name_prefix_art = varchar("name_prefix_art", length = 32).nullable()
-  val description = varchar("description", length = 2048).nullable()
+  val name = nameType("name")
+  val art_id = idType("art_id")
+  val name_prefix_art = namePrefixArt("name_prefix_art").nullable()
+  val description = descriptionType("description").nullable()
+  val required_exp = attrType("required_exp")
+  val damage = attrType("damage")
+  val breath = attrType("breath")
+  val blood = attrType("blood")
   val banner = text("banner").nullable()
-  val damage = long("damage")
-  val breath = long("breath")
-  val blood = long("blood")
-  val intents = integer("intents")
+  val flags = integer("flags")
 
   override val primaryKey = PrimaryKey(guild_id, id)
 }

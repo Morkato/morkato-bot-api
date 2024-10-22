@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.GetMapping
 import jakarta.validation.Valid
+import morkato.api.dto.guild.GuildCreateData
 
 import morkato.api.exception.model.GuildNotFoundError
 import morkato.api.dto.guild.GuildResponseData
@@ -16,6 +17,7 @@ import morkato.api.model.guild.Guild
 
 import morkato.api.infra.repository.GuildRepository
 import morkato.api.dto.validation.IdSchema
+import org.springframework.web.bind.annotation.PostMapping
 
 @RestController
 @RequestMapping("/guilds/{id}")
@@ -25,15 +27,33 @@ class GuildController {
   fun getGuildByReference(
     @PathVariable("id") @IdSchema id: String
   ) : GuildResponseData {
-    return try {
-      val payload = GuildRepository.findById(id)
-      val guild = Guild(payload)
-      GuildResponseData(guild)
-    } catch (exc: GuildNotFoundError) {
-      val payload = GuildRepository.getPayloadWithDefaults(id)
-      val guild = Guild(payload)
-      GuildResponseData(guild)
-    }
+    val guild = Guild(GuildRepository.findById(id))
+    return GuildResponseData(guild)
+  }
+  @PostMapping
+  @Transactional
+  fun createGuild(
+    @PathVariable("id") @IdSchema id: String,
+    @RequestBody @Valid data: GuildCreateData
+  ) : GuildResponseData {
+    val payload = GuildRepository.createGuild(
+      id = id,
+      rpgStartCalendar = data.start_rpg_calendar,
+      rpgStartDate = data.start_rpg_date,
+      humanInitialLife = data.human_initial_life,
+      oniInitialLife = data.oni_initial_life,
+      hybridInitialLife = data.hybrid_initial_life,
+      breathInitial = data.breath_initial,
+      bloodInitial = data.blood_initial,
+      familyRoll = data.family_roll,
+      abilityRoll = data.ability_roll,
+      prodigyRoll = null,
+      markRoll = null,
+      rollCategoryId = data.roll_category_id,
+      offCategoryId = data.off_category_id
+    )
+    val guild = Guild(payload)
+    return GuildResponseData(guild)
   }
   @PutMapping
   @Transactional
@@ -41,17 +61,8 @@ class GuildController {
     @PathVariable("id") @IdSchema id: String,
     @RequestBody @Valid data: GuildUpdateData
   ) : GuildResponseData {
-    return try {
-      this.updateGuildWithReference(id, data)
-    } catch (exc: GuildNotFoundError) {
-      this.updateGuildWithUnknownReference(id, data)
-    }
-  }
-
-  fun updateGuildWithReference(id: String, data: GuildUpdateData) : GuildResponseData {
-    val payload = GuildRepository.findById(id)
-    val beforeGuild = Guild(payload)
-    val guild = beforeGuild.update(
+    val before = Guild(GuildRepository.findById(id))
+    val guild = before.update(
       humanInitialLife = data.human_initial_life,
       oniInitialLife = data.oni_initial_life,
       hybridInitialLife = data.hybrid_initial_life,
@@ -59,26 +70,12 @@ class GuildController {
       bloodInitial = data.blood_initial,
       familyRoll = data.family_roll,
       abilityRoll = data.ability_roll,
+      prodigyRoll = null,
+      markRoll = null,
+      berserkRoll = null,
       rollCategoryId = data.roll_category_id,
       offCategoryId = data.off_category_id
     )
-    return GuildResponseData(guild)
-  }
-
-  fun updateGuildWithUnknownReference(id: String, data: GuildUpdateData) : GuildResponseData {
-    val payload = GuildRepository.createGuild(
-      id = id,
-      humanInitialLife = data.human_initial_life,
-      oniInitialLife = data.oni_initial_life,
-      hybridInitialLife = data.hybrid_initial_life,
-      breathInitial = data.breath_initial,
-      bloodInitial = data.blood_initial,
-      familyRoll = data.family_roll,
-      abilityRoll = data.ability_roll,
-      rollCategoryId = data.roll_category_id,
-      offCategoryId = data.off_category_id
-    )
-    val guild = Guild(payload)
     return GuildResponseData(guild)
   }
 }

@@ -2,12 +2,12 @@
 --  // Intents: Inteções do ataque.
 
 --  // 0: Nenhuma
---  // (1 << 2): Indesviável
---  // (1 << 3): Indefensável
---  // (1 << 4): Em área
---  // (1 << 5): Não contra atacável
---  // (1 << 6): Contra Ataque
---  // (1 << 7): Usável para defesa
+--  // (1 << 1): Indesviável
+--  // (1 << 2): Indefensável
+--  // (1 << 3): Em área
+--  // (1 << 4): Não contra atacável
+--  // (1 << 5): Contra Ataque
+--  // (1 << 6): Usável para defesa
 
 CREATE SEQUENCE "attack_snowflake_seq";
 CREATE TABLE "attacks" (
@@ -18,13 +18,12 @@ CREATE TABLE "attacks" (
   "art_id" id_type NOT NULL,
   "name_prefix_art" name_prefix_art_type DEFAULT NULL,
   "description" description_type DEFAULT NULL,
-  "resume_description" resume_description_type DEFAULT NULL,
   "banner" banner_type DEFAULT NULL,
-  "damage" attr_type DEFAULT 1,
-  "breath" attr_type DEFAULT 1,
-  "blood" attr_type DEFAULT 1,
-  "intents" INTEGER NOT NULL DEFAULT 0,
-  "updated_at" TIMESTAMP DEFAULT NULL
+  "required_exp" attr_type NOT NULL DEFAULT 0,
+  "damage" attr_type NOT NULL DEFAULT 0,
+  "breath" attr_type NOT NULL DEFAULT 0,
+  "blood" attr_type NOT NULL DEFAULT 0,
+  "flags" INTEGER NOT NULL DEFAULT 0
 );
 ALTER TABLE "attacks"
   ADD CONSTRAINT "attack.pkey" PRIMARY KEY ("guild_id","id");

@@ -1,10 +1,9 @@
--- ALL DATA IN TABLE "npcs" WILL BE DELETED IN VERSION 7.0! FOR ADD NEW CONSTRAINTS.
--- "surname" COLUMN IN TABLE "npcs" THE TYPE WILL BE REPLACED BY NEW DOMAIN "surname_type" (AVAILABLE IN VERSION 7.0).
--- "guild_id" COLUMN IN TABLE "npcs" WILL BE ADDED (AVAILABLE IN VERSION 7.0).
--- "npc_ability.family" CONSTRAINT INTO "npcs" IS RENAMED TO "npc_ability.npc" IN VERSION 10.0!
--- "flags" COLUMN IS ADDED INTO TABLE "npcs" IN VERSION 11.0!
--- "prodigy" COLUMN IS DELETED INTO TABLE "npcs" IN VERSION 11.0!
--- "mark" COLUMN IS DELETED INTO TABLE "npcs" IN VERSION 11.0!
+--  // Flags: Flags do NPC.
+
+--  // 0: Nenhuma
+--  // (1 << 1): Prodígio
+--  // (1 << 2): Marca
+--  // (1 << 3): Berserk Mode
 CREATE SEQUENCE "npc_snowflake_seq";
 CREATE TABLE "npcs" (
   "name" name_type NOT NULL,
@@ -13,9 +12,9 @@ CREATE TABLE "npcs" (
   "guild_id" discord_id_type NOT NULL,
   "family_id" id_type NOT NULL,
   "id" id_type NOT NULL DEFAULT snowflake_id('npc_snowflake_seq'),
+  "max_energy" energy_type NOT NULL DEFAULT 100,
   "energy" energy_type NOT NULL DEFAULT 100,
-  "mark" BOOLEAN DEFAULT FALSE,
-  "prodigy" BOOLEAN DEFAULT FALSE,
+  "flags" INTEGER NOT NULL DEFAULT 0,
   "max_life" attr_type NOT NULL DEFAULT 0,
   "max_breath" attr_type NOT NULL DEFAULT 0,
   "max_blood" attr_type NOT NULL DEFAULT 0,
@@ -23,13 +22,20 @@ CREATE TABLE "npcs" (
   "current_breath" attr_type NOT NULL DEFAULT 0,
   "current_blood" attr_type NOT NULL DEFAULT 0,
   "icon" banner_type DEFAULT NULL,
-  "updated_at" TIMESTAMP DEFAULT NULL
+  "last_action" TIMESTAMP DEFAULT NULL
 );
 
 CREATE TABLE "npcs_abilities" (
+  "guild_id" discord_id_type NOT NULL,
   "ability_id" id_type NOT NULL,
+  "npc_id" id_type NOT NULL
+);
+
+CREATE TABLE "npcs_arts" (
+  "guild_id" discord_id_type NOT NULL,
   "npc_id" id_type NOT NULL,
-  "guild_id" discord_id_type NOT NULL
+  "art_id" id_type NOT NULL,
+  "exp" attr_type NOT NULL DEFAULT 0
 );
 
 ALTER TABLE "npcs"
@@ -51,6 +57,8 @@ ALTER TABLE "npcs"
   ADD CONSTRAINT "npc.current_breath" CHECK ("max_breath" >= "current_breath");
 ALTER TABLE "npcs"
   ADD CONSTRAINT "npc.current_blood" CHECK ("max_blood" >= "current_blood");
+ALTER TABLE "npcs"
+  ADD CONSTRAINT "npc.energy" CHECK ("max_energy" >= "energy");
 
 ALTER TABLE "npcs_abilities"
   ADD CONSTRAINT "npc_ability.pkey" PRIMARY KEY ("guild_id","npc_id","ability_id");
@@ -59,7 +67,18 @@ ALTER TABLE "npcs_abilities"
   ON DELETE CASCADE
   ON UPDATE RESTRICT;
 ALTER TABLE "npcs_abilities"
-  ADD CONSTRAINT "npc_ability.family" FOREIGN KEY ("guild_id","npc_id") REFERENCES "npcs"("guild_id","id")
+  ADD CONSTRAINT "npc_ability.npc" FOREIGN KEY ("guild_id","npc_id") REFERENCES "npcs"("guild_id","id")
+  ON DELETE RESTRICT
+  ON UPDATE RESTRICT;
+
+ALTER TABLE "npcs_arts"
+  ADD CONSTRAINT "npc_art.pkey" PRIMARY KEY ("guild_id","npc_id","art_id");
+ALTER TABLE "npcs_arts"
+  ADD CONSTRAINT "npc_art.npc" FOREIGN KEY ("guild_id","npc_id") REFERENCES "npcs"("guild_id","id")
+  ON DELETE CASCADE
+  ON UPDATE RESTRICT;
+ALTER TABLE "npcs_arts"
+  ADD CONSTRAINT "npc_art.art" FOREIGN KEY ("guild_id","art_id") REFERENCES "arts"("guild_id","id")
   ON DELETE RESTRICT
   ON UPDATE RESTRICT;
 

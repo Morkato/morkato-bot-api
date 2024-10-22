@@ -1,4 +1,4 @@
--- V8: AUTOMATICALLY ATRIBUTE INCREMENT "key" IS UNIVERSALLY.
+-- V8: AUTOMATICALLY ATTRIBUTE INCREMENT "key" IS UNIVERSALLY.
 CREATE FUNCTION convert_to_key(value name_type) RETURNS key_type AS $$
   BEGIN RETURN REGEXP_REPLACE(REGEXP_REPLACE(LOWER(unaccent(value)), '^\s+|\s+$', '', 'g'), '\s+', '-', 'g');
 END; $$ LANGUAGE plpgsql;

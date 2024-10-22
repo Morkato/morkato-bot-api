@@ -13,22 +13,31 @@ import morkato.api.model.art.ArtType
 import morkato.api.model.art.Art
 
 import org.jetbrains.exposed.sql.ResultRow
+import java.math.BigDecimal
+import java.time.Instant
 
 class Guild(
   val id: String,
-  val humanInitialLife: Long,
-  val oniInitialLife: Long,
-  val hybridInitialLife: Long,
-  val breathInitial: Long,
-  val bloodInitial: Long,
-  val familyRoll: Int,
-  val abilityRoll: Int,
+  val startRpgCalendar: Instant,
+  val startRpgDate: Instant,
+  val humanInitialLife: BigDecimal,
+  val oniInitialLife: BigDecimal,
+  val hybridInitialLife: BigDecimal,
+  val breathInitial: BigDecimal,
+  val bloodInitial: BigDecimal,
+  val familyRoll: BigDecimal,
+  val abilityRoll: BigDecimal,
+  val prodigyRoll: BigDecimal,
+  val markRoll: BigDecimal,
+  val berserkRoll: BigDecimal,
   val rollCategoryId: String?,
   val offCategoryId: String?
 ) {
-  public constructor(row: ResultRow) : this(GuildRepository.GuildPayload(row)) {}
+  public constructor(row: ResultRow) : this(GuildRepository.GuildPayload(row));
   public constructor(payload: GuildRepository.GuildPayload) : this(
     payload.id,
+    payload.startRpgCalendar,
+    payload.startRpgDate,
     payload.humanInitialLife,
     payload.oniInitialLife,
     payload.hybridInitialLife,
@@ -36,22 +45,30 @@ class Guild(
     payload.bloodInitial,
     payload.familyRoll,
     payload.abilityRoll,
+    payload.prodigyRoll,
+    payload.markRoll,
+    payload.berserkRoll,
     payload.rollCategoryId,
     payload.offCategoryId
-  ) {}
+  );
   fun update(
-    humanInitialLife: Long?,
-    oniInitialLife: Long?,
-    hybridInitialLife: Long?,
-    breathInitial: Long?,
-    bloodInitial: Long?,
-    familyRoll: Int?,
-    abilityRoll: Int?,
+    humanInitialLife: BigDecimal?,
+    oniInitialLife: BigDecimal?,
+    hybridInitialLife: BigDecimal?,
+    breathInitial: BigDecimal?,
+    bloodInitial: BigDecimal?,
+    familyRoll: BigDecimal?,
+    abilityRoll: BigDecimal?,
+    prodigyRoll: BigDecimal?,
+    markRoll: BigDecimal?,
+    berserkRoll: BigDecimal?,
     rollCategoryId: String?,
     offCategoryId: String?
   ) : Guild {
     val payload = GuildRepository.GuildPayload(
       id = this.id,
+      startRpgCalendar = this.startRpgCalendar,
+      startRpgDate = this.startRpgDate,
       humanInitialLife = humanInitialLife ?: this.humanInitialLife,
       oniInitialLife = oniInitialLife ?: this.oniInitialLife,
       hybridInitialLife = hybridInitialLife ?: this.hybridInitialLife,
@@ -59,6 +76,9 @@ class Guild(
       bloodInitial = bloodInitial ?: this.bloodInitial,
       familyRoll = familyRoll ?: this.familyRoll,
       abilityRoll = abilityRoll ?: this.abilityRoll,
+      prodigyRoll = prodigyRoll ?: this.prodigyRoll,
+      markRoll = markRoll ?: this.markRoll,
+      berserkRoll = berserkRoll ?: this.berserkRoll,
       rollCategoryId = rollCategoryId ?: this.rollCategoryId,
       offCategoryId = offCategoryId ?: this.offCategoryId
     )
@@ -71,6 +91,9 @@ class Guild(
       bloodInitial = bloodInitial,
       familyRoll = familyRoll,
       abilityRoll = abilityRoll,
+      prodigyRoll = prodigyRoll,
+      markRoll = markRoll,
+      berserkRoll = berserkRoll,
       rollCategoryId = rollCategoryId,
       offCategoryId = offCategoryId
     )
@@ -89,10 +112,10 @@ class Guild(
     type: ArtType,
     description: String?,
     banner: String?,
-    energy: Int?,
-    life: Long?,
-    breath: Long?,
-    blood: Long?
+    energy: BigDecimal?,
+    life: BigDecimal?,
+    breath: BigDecimal?,
+    blood: BigDecimal?
   ) : Art {
     val payload = ArtRepository.createArt(
       guildId = this.id,
@@ -127,20 +150,18 @@ class Guild(
   }
   fun createAbility(
     name: String,
-    type: AbilityType,
-    percent: Int?,
-    npcKind: Int,
-    immutable: Boolean?,
+    energy: BigDecimal?,
+    percent: BigDecimal?,
+    npcType: Int,
     description: String?,
     banner: String?
   ) : Ability {
     val payload = AbilityRepository.createAbility(
       guildId = this.id,
       name = name,
-      type = type,
+      energy = energy,
       percent = percent,
-      npcKind = npcKind,
-      immutable = immutable,
+      npcType = npcType,
       description = description,
       banner = banner
     )
@@ -157,15 +178,15 @@ class Guild(
   }
   fun createFamily(
     name: String,
-    npcKind: NpcType,
-    percent: Int?,
+    npcType: Int?,
+    percent: BigDecimal?,
     description: String?,
     banner: String?
   ) : Family {
     val payload = FamilyRepository.createFamily(
       guildId = this.id,
       name = name,
-      npcKind = npcKind,
+      npcType = npcType,
       percent = percent,
       description = description,
       banner = banner
@@ -191,7 +212,6 @@ class Guild(
     type: NpcType,
     familyId: Long,
     surname: String,
-    energy: Int?,
     flags: Int?,
     icon: String?
   ) : Npc {
@@ -209,7 +229,6 @@ class Guild(
       type = type,
       familyId = familyId,
       surname = surname,
-      energy = energy,
       flags = flags,
       life = life,
       breath = breath,
@@ -225,27 +244,27 @@ class Guild(
   }
   fun createPlayer(
     id: String,
-    expectedNpcType: NpcType,
-    abilityRoll: Int?,
-    familyRoll: Int?,
-    prodigyRoll: Int?,
-    markRoll: Int?,
-    berserkRoll: Int?,
-    flags: Int?,
-    expectedFamilyId: Long?
+    npcType: NpcType,
+    familyId: Long?,
+    abilityRoll: BigDecimal?,
+    familyRoll: BigDecimal?,
+    prodigyRoll: BigDecimal?,
+    markRoll: BigDecimal?,
+    berserkRoll: BigDecimal?,
+    flags: Int?
   ) : Player {
     val thisAbilityRoll = abilityRoll ?: this@Guild.abilityRoll
     val thisFamilyRoll = familyRoll ?: this@Guild.familyRoll
     val payload = PlayerRepository.createPlayer(
       this.id, id,
+      npcType = npcType,
+      familyId = familyId,
       abilityRoll = thisAbilityRoll,
       familyRoll = thisFamilyRoll,
       prodigyRoll = prodigyRoll,
       markRoll = markRoll,
       berserkRoll = berserkRoll,
-      flags = flags,
-      expectedFamilyId = expectedFamilyId,
-      expectedNpcType = expectedNpcType
+      flags = flags
     )
     return Player(this, payload)
   }

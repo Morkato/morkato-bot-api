@@ -4,17 +4,17 @@ import org.jetbrains.exposed.sql.Table
 import morkato.api.model.art.ArtType
 
 object arts : Table("arts") {
-  val guild_id = reference("guild_id", guilds.id)
-  val id = long("id").autoIncrement()
+  val guild_id = discordSnowflakeIdType("guild_id")
+  val id = idType("id").autoIncrement()
 
-  val name = varchar("name", length = 32)
-  val type = enumerationByName<ArtType>("type", length = 16, klass = ArtType::class)
-  val description = varchar("description", length = 2048).nullable()
-  val banner = text("banner").nullable()
-  val energy = integer("energy")
-  val life = long("life")
-  val breath = long("breath")
-  val blood = long("blood")
+  val name = nameType("name")
+  val type = artType("type")
+  val energy = energyType("energy")
+  val life = attrType("life")
+  val breath = attrType("breath")
+  val blood = attrType("blood")
+  val description = descriptionType("description").nullable()
+  val banner = bannerType("banner").nullable()
 
   override val primaryKey = PrimaryKey(guild_id, id)
 }

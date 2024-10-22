@@ -4,15 +4,15 @@ import morkato.api.infra.repository.AbilityRepository
 import morkato.api.model.guild.Guild
 
 import org.jetbrains.exposed.sql.ResultRow
+import java.math.BigDecimal
 
 class Ability(
   val guild: Guild,
   val id: Long,
   val name: String,
-  val type: AbilityType,
-  val percent: Int,
-  val npcKind: Int,
-  val immutable: Boolean,
+  val energy: BigDecimal,
+  val percent: BigDecimal,
+  val npcType: Int,
   val description: String?,
   val banner: String?
 ) {
@@ -21,19 +21,18 @@ class Ability(
     guild,
     payload.id,
     payload.name,
-    payload.type,
+    payload.energy,
     payload.percent,
-    payload.npcKind,
-    payload.immutable,
+    payload.npcType,
     payload.description,
     payload.banner
-  ) {}
+  );
 
   fun update(
     name: String?,
-    type: AbilityType?,
-    percent: Int?,
-    npcKind: Int?,
+    energy: BigDecimal?,
+    percent: BigDecimal?,
+    npcType: Int?,
     description: String?,
     banner: String?
   ) : Ability {
@@ -41,20 +40,19 @@ class Ability(
       guildId = this.guild.id,
       id = this.id,
       name = name ?: this.name,
-      type = type ?: this.type,
+      energy = energy ?: this.energy,
       percent = percent ?: this.percent,
-      npcKind = npcKind ?: this.npcKind,
+      npcType = npcType ?: this.npcType,
       description = description ?: this.description,
-      immutable = this.immutable,
       banner = banner ?: this.banner
     )
     AbilityRepository.updateAbility(
       guildId = this.guild.id,
       id = this.id,
       name = name,
-      type = type,
+      energy = energy,
       percent = percent,
-      npcKind = npcKind,
+      npcType = npcType,
       description = description,
       banner = banner
     )

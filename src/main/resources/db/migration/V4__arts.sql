@@ -6,9 +6,12 @@ CREATE TABLE "arts"(
   "guild_id" discord_id_type NOT NULL,
   "id" id_type NOT NULL DEFAULT snowflake_id('art_snowflake_seq'),
   "type" art_type NOT NULL,
+  "energy" energy_type NOT NULL DEFAULT 25,
+  "life" attr_type NOT NULL DEFAULT 1,
+  "breath" attr_type NOT NULL DEFAULT 1,
+  "blood" attr_type NOT NULL DEFAULT 1,
   "description" description_type DEFAULT NULL,
-  "banner" banner_type DEFAULT NULL,
-  "updated_at" TIMESTAMP DEFAULT NULL
+  "banner" banner_type DEFAULT NULL
 );
 ALTER TABLE "arts"
   ADD CONSTRAINT "art.pkey" PRIMARY KEY ("guild_id","id");

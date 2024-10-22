@@ -28,14 +28,10 @@ class AbilityController {
   fun getAllByGuildId(
     @PathVariable("guild_id") @IdSchema guild_id: String
   ) : List<AbilityResponseData>{
-    return try {
-      val guild = Guild(GuildRepository.findById(guild_id))
-      guild.getAllAbilities()
-        .map(::AbilityResponseData)
-        .toList()
-    } catch (exc: GuildNotFoundError) {
-      listOf()
-    }
+    val guild = Guild(GuildRepository.findById(guild_id))
+    return guild.getAllAbilities()
+      .map(::AbilityResponseData)
+      .toList()
   }
   @PostMapping
   @Transactional
@@ -43,13 +39,12 @@ class AbilityController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @RequestBody @Valid data: AbilityCreateData
   ) : AbilityResponseData {
-    val guild = Guild(GuildRepository.findByIdOrCreate(guild_id))
+    val guild = Guild(GuildRepository.findById(guild_id))
     val ability = guild.createAbility(
       name = data.name,
-      type = data.type,
+      energy = data.energy,
       percent = data.percent,
-      npcKind = data.npc_kind,
-      immutable = data.immutable,
+      npcType = data.npc_type,
       description = data.description,
       banner = data.banner
     )
@@ -61,16 +56,9 @@ class AbilityController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @PathVariable("id") @IdSchema id: String
   ) : AbilityResponseData {
-    return try {
-      val guild = Guild(GuildRepository.findById(guild_id))
-      val ability = guild.getAbility(id.toLong())
-      AbilityResponseData(ability)
-    } catch (exc: GuildNotFoundError) {
-      val extra: MutableMap<String, Any?> = mutableMapOf()
-      extra["guild_id"] = guild_id
-      extra["id"] = id
-      throw AbilityNotFoundError(extra)
-    }
+    val guild = Guild(GuildRepository.findById(guild_id))
+    val ability = guild.getAbility(id.toLong())
+    return AbilityResponseData(ability)
   }
   @PutMapping("/{id}")
   @Transactional
@@ -79,24 +67,17 @@ class AbilityController {
     @PathVariable("id") @IdSchema id: String,
     @RequestBody @Valid data: AbilityUpdateData
   ) : AbilityResponseData {
-    return try {
-      val guild = Guild(GuildRepository.findById(guild_id))
-      val before = guild.getAbility(id.toLong())
-      val ability = before.update(
-        name = data.name,
-        type = data.type,
-        percent = data.percent,
-        npcKind = data.npc_kind,
-        description = data.description,
-        banner = data.banner
-      )
-      AbilityResponseData(ability)
-    } catch (exc: GuildNotFoundError) {
-      val extra: MutableMap<String, Any?> = mutableMapOf()
-      extra["guild_id"] = guild_id
-      extra["id"] = id
-      throw AbilityNotFoundError(extra)
-    }
+    val guild = Guild(GuildRepository.findById(guild_id))
+    val before = guild.getAbility(id.toLong())
+    val ability = before.update(
+      name = data.name,
+      energy = data.energy,
+      percent = data.percent,
+      npcType = data.npc_type,
+      description = data.description,
+      banner = data.banner
+    )
+    return AbilityResponseData(ability)
   }
   @DeleteMapping("/{id}")
   @Transactional
@@ -104,16 +85,9 @@ class AbilityController {
     @PathVariable("guild_id") @IdSchema guild_id: String,
     @PathVariable("id") @IdSchema id: String
   ) : AbilityResponseData {
-    return try {
-      val guild = Guild(GuildRepository.findById(guild_id))
-      val ability = guild.getAbility(id.toLong())
-      ability.delete()
-      AbilityResponseData(ability)
-    } catch (exc: GuildNotFoundError) {
-      val extra: MutableMap<String, Any?> = mutableMapOf()
-      extra["guild_id"] = guild_id
-      extra["id"] = id
-      throw AbilityNotFoundError(extra)
-    }
+    val guild = Guild(GuildRepository.findById(guild_id))
+    val ability = guild.getAbility(id.toLong())
+    ability.delete()
+    return AbilityResponseData(ability)
   }
 }
