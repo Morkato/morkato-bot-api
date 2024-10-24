@@ -21,7 +21,7 @@ data class GuildResponseData(
   val off_category_id: String?
 ) {
   companion object {
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
   }
   public constructor(guild: Guild) : this(
     guild.id,

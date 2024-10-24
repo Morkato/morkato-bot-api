@@ -8,7 +8,7 @@ object guilds : Table("guilds") {
 
   val start_rpg_calendar = timestamp("start_rpg_calendar")
   val start_rpg_date = timestamp("start_rpg_date")
-  val human_initial_life = attrType("human_initial_life", )
+  val human_initial_life = attrType("human_initial_life")
   val oni_initial_life = attrType("oni_initial_life")
   val hybrid_initial_life = attrType("hybrid_initial_life")
   val breath_initial = attrType("breath_initial")

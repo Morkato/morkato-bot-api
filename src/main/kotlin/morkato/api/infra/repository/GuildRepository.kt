@@ -73,7 +73,7 @@ object GuildRepository {
       throw GuildNotFoundError(extra)
     }
   }
-  fun createGuild(
+  fun   createGuild(
     id: String,
     rpgStartCalendar: Instant,
     rpgStartDate: Instant? = null,
@@ -94,8 +94,10 @@ object GuildRepository {
       it[this.id] = id
       it[this.roll_category_id] = rollCategoryId
       it[this.off_category_id] = offCategoryId
-      it[this.start_rpg_calendar] = start_rpg_calendar
-      it[this.start_rpg_date] = start_rpg_date
+      it[this.start_rpg_calendar] = rpgStartCalendar
+      if (rpgStartDate != null) {
+        it[this.start_rpg_date] = rpgStartDate
+      }
       if (humanInitialLife != null) {
         it[this.human_initial_life] = humanInitialLife
       }
