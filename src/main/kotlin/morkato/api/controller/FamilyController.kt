@@ -13,8 +13,6 @@ import jakarta.validation.Valid
 
 import morkato.api.infra.repository.AbilityFamilyRepository
 import morkato.api.infra.repository.GuildRepository
-import morkato.api.exception.model.FamilyNotFoundError
-import morkato.api.exception.model.GuildNotFoundError
 import morkato.api.dto.family.FamilyAbilityResponseData
 import morkato.api.dto.family.FamilyResponseData
 import morkato.api.dto.family.FamilyCreateData
@@ -89,7 +87,7 @@ class FamilyController {
     val before = guild.getFamily(id.toLong())
     val family = before.update(
       name = data.name,
-      npcKind = null,
+      npcType = data.npc_type,
       percent = data.percent,
       description = data.description,
       banner = data.banner

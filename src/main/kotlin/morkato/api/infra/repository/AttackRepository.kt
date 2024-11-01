@@ -22,6 +22,13 @@ object AttackRepository {
     val namePrefixArt: String?,
     val description: String?,
     val banner: String?,
+    val poisonTurn: BigDecimal,
+    val burnTurn: BigDecimal,
+    val bleedTurn: BigDecimal,
+    val poison: BigDecimal,
+    val burn: BigDecimal,
+    val bleed: BigDecimal,
+    val stun: BigDecimal,
     val damage: BigDecimal,
     val breath: BigDecimal,
     val blood: BigDecimal,
@@ -35,6 +42,13 @@ object AttackRepository {
       row[attacks.name_prefix_art],
       row[attacks.description],
       row[attacks.banner],
+      row[attacks.poison_turn],
+      row[attacks.burn_turn],
+      row[attacks.bleed_turn],
+      row[attacks.poison],
+      row[attacks.burn],
+      row[attacks.bleed],
+      row[attacks.stun],
       row[attacks.damage],
       row[attacks.breath],
       row[attacks.blood],
@@ -90,6 +104,13 @@ object AttackRepository {
     namePrefixArt: String?,
     description: String?,
     banner: String?,
+    poisonTurn: BigDecimal?,
+    burnTurn: BigDecimal?,
+    bleedTurn: BigDecimal?,
+    poison: BigDecimal?,
+    burn: BigDecimal?,
+    bleed: BigDecimal?,
+    stun: BigDecimal?,
     damage: BigDecimal?,
     breath: BigDecimal?,
     blood: BigDecimal?,
@@ -102,6 +123,27 @@ object AttackRepository {
       it[this.name_prefix_art] = namePrefixArt
       it[this.description] = description
       it[this.banner] = banner
+      if (poisonTurn != null) {
+        it[this.poison_turn] = poisonTurn
+      }
+      if (burnTurn != null) {
+        it[this.burn_turn] = burnTurn
+      }
+      if (bleedTurn != null) {
+        it[this.bleed_turn] = bleedTurn
+      }
+      if (poison != null) {
+        it[this.poison] = poison
+      }
+      if (burn != null) {
+        it[this.burn] = burn
+      }
+      if (bleed != null){
+        it[this.bleed] = bleed
+      }
+      if (stun != null) {
+        it[this.stun] = stun
+      }
       if (damage != null) {
         it[this.damage] = damage
       }
@@ -123,6 +165,13 @@ object AttackRepository {
       namePrefixArt = namePrefixArt,
       description = description,
       banner = banner,
+      poisonTurn = poisonTurn ?: DefaultValue.attr,
+      burnTurn = burnTurn ?: DefaultValue.attr,
+      bleedTurn = bleedTurn ?: DefaultValue.attr,
+      poison = poison ?: DefaultValue.attr,
+      burn = burn ?: DefaultValue.attr,
+      bleed = bleed ?: DefaultValue.attr,
+      stun = stun ?: DefaultValue.attr,
       damage = damage ?: DefaultValue.attr,
       breath = breath ?: DefaultValue.attr,
       blood = blood ?: DefaultValue.attr,
@@ -136,6 +185,13 @@ object AttackRepository {
     namePrefixArt: String? = null,
     description: String? = null,
     banner: String? = null,
+    poisonTurn: BigDecimal? = null,
+    burnTurn: BigDecimal? = null,
+    bleedTurn: BigDecimal? = null,
+    poison: BigDecimal? = null,
+    burn: BigDecimal? = null,
+    bleed: BigDecimal? = null,
+    stun: BigDecimal? = null,
     damage: BigDecimal? = null,
     breath: BigDecimal? = null,
     blood: BigDecimal? = null,
@@ -156,6 +212,27 @@ object AttackRepository {
       }
       if (banner != null) {
         it[this.banner] = banner
+      }
+      if (poisonTurn != null) {
+        it[this.poison_turn] = poisonTurn
+      }
+      if (burnTurn != null) {
+        it[this.burn_turn] = burnTurn
+      }
+      if (bleedTurn != null) {
+        it[this.bleed_turn] = bleedTurn
+      }
+      if (poison != null) {
+        it[this.poison] = poison
+      }
+      if (burn != null) {
+        it[this.burn] = burn
+      }
+      if (bleed != null){
+        it[this.bleed] = bleed
+      }
+      if (stun != null) {
+        it[this.stun] = stun
       }
       if (damage != null) {
         it[this.damage] = damage

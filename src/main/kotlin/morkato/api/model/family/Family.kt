@@ -3,7 +3,6 @@ package morkato.api.model.family
 import morkato.api.infra.repository.AbilityFamilyRepository
 import morkato.api.infra.repository.FamilyRepository
 import morkato.api.model.guild.Guild
-import morkato.api.model.npc.NpcType
 
 import org.jetbrains.exposed.sql.ResultRow
 import java.math.BigDecimal
@@ -32,7 +31,7 @@ class Family(
   }
   fun update(
     name: String?,
-    npcKind: Int?,
+    npcType: Int?,
     percent: BigDecimal?,
     description: String?,
     banner: String?
@@ -41,7 +40,7 @@ class Family(
       guildId = this.guild.id,
       id = this.id,
       name = name ?: this.name,
-      npcType = npcKind ?: this.npcType,
+      npcType = npcType ?: this.npcType,
       percent = percent ?: this.percent,
       description = description ?: this.description,
       banner = banner ?: this.banner

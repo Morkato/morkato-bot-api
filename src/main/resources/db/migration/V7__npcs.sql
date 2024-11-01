@@ -27,8 +27,8 @@ CREATE TABLE "npcs" (
 
 CREATE TABLE "npcs_abilities" (
   "guild_id" discord_id_type NOT NULL,
-  "ability_id" id_type NOT NULL,
-  "npc_id" id_type NOT NULL
+  "npc_id" id_type NOT NULL,
+  "ability_id" id_type NOT NULL
 );
 
 CREATE TABLE "npcs_arts" (
@@ -64,11 +64,11 @@ ALTER TABLE "npcs_abilities"
   ADD CONSTRAINT "npc_ability.pkey" PRIMARY KEY ("guild_id","npc_id","ability_id");
 ALTER TABLE "npcs_abilities"
   ADD CONSTRAINT "npc_ability.ability" FOREIGN KEY ("guild_id","ability_id") REFERENCES "abilities"("guild_id","id")
-  ON DELETE CASCADE
+  ON DELETE RESTRICT
   ON UPDATE RESTRICT;
 ALTER TABLE "npcs_abilities"
   ADD CONSTRAINT "npc_ability.npc" FOREIGN KEY ("guild_id","npc_id") REFERENCES "npcs"("guild_id","id")
-  ON DELETE RESTRICT
+  ON DELETE CASCADE
   ON UPDATE RESTRICT;
 
 ALTER TABLE "npcs_arts"

@@ -16,7 +16,7 @@ BEGIN
     max_energy = max_energy + ability.energy,
     energy = max_energy + ability.energy
   WHERE guild_id = NEW.guild_id
-    AND npc_id = NEW.npc_id;
+    AND id = NEW.npc_id;
   GET DIAGNOSTICS updated = ROW_COUNT;
   IF updated <> 1 THEN
     RAISE EXCEPTION 'Updated <> 1 npcs, where: guild_id % npc_id %', NEW.guild_id, NEW.npc_id;
@@ -25,7 +25,7 @@ BEGIN
 END; $$ LANGUAGE plpgsql;
 CREATE FUNCTION sync_npc_with_player() RETURNS TRIGGER AS $$
 DECLARE
-  player_id discord_id_type;
+  _player_id discord_id_type;
   ability_ids id_type[];
   ability_id id_type;
   max_energy energy_type;
@@ -33,7 +33,7 @@ BEGIN
   IF NEW.player_id IS NULL THEN
     RETURN NEW;
   END IF;
-  player_id := NEW.player_id;
+  _player_id := NEW.player_id;
     SELECT
       array_agg(ability.id),
       SUM(ability.energy)
@@ -43,7 +43,7 @@ BEGIN
       ON ability.guild_id = pa.guild_id
         AND ability.id = pa.ability_id
     WHERE pa.guild_id = NEW.guild_id
-      AND pa.player_id = player_id;
+      AND pa.player_id = _player_id;
   FOREACH ability_id IN ARRAY ability_ids LOOP
     INSERT INTO "npcs_abilities"("guild_id","npc_id","ability_id")
       VALUES (NEW.guild_id,NEW.id,ability_id);

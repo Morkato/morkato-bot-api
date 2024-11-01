@@ -255,15 +255,18 @@ class Guild(
   ) : Player {
     val thisAbilityRoll = abilityRoll ?: this@Guild.abilityRoll
     val thisFamilyRoll = familyRoll ?: this@Guild.familyRoll
+    val thisProdigyRoll = prodigyRoll ?: this.prodigyRoll
+    val thisMarkRoll = markRoll ?: this.markRoll
+    val thisBerserkRoll = berserkRoll ?: this.berserkRoll
     val payload = PlayerRepository.createPlayer(
       this.id, id,
       npcType = npcType,
       familyId = familyId,
       abilityRoll = thisAbilityRoll,
       familyRoll = thisFamilyRoll,
-      prodigyRoll = prodigyRoll,
-      markRoll = markRoll,
-      berserkRoll = berserkRoll,
+      prodigyRoll = thisProdigyRoll,
+      markRoll = thisMarkRoll,
+      berserkRoll = thisBerserkRoll,
       flags = flags
     )
     return Player(this, payload)

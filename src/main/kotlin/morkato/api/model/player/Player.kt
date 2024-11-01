@@ -53,7 +53,7 @@ class Player(
     icon: String?
   ) : Npc {
     val familyId = this.familyId ?: throw PlayerFamilyIsNullError(this.guild.id, this.id)
-    return this.guild.createNpc(
+    val npc = this.guild.createNpc(
       playerId = this.id,
       name = name,
       surname = surname,
@@ -62,6 +62,7 @@ class Player(
       flags = this.flags,
       icon = icon
     )
+    return this.guild.getNpc(npc.id)
   }
 
   fun getAllAbilities() : Sequence<PlayerAbilityRepository.PlayerAbilityPayload> {
